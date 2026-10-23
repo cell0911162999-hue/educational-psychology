@@ -1,0 +1,671 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>教心考古題闖關</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;900&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: one centered column like an answer sheet; answer-card bubbles track progress */
+:root{
+  --paper:#f5f6f8; --sheet:#ffffff; --ink:#1d2533; --muted:#5d6676; --line:#dfe3ea;
+  --card-red:#c23a3a; --card-red-soft:#fbecec; --graphite:#3a414d;
+  --ok:#2f7d4f; --ok-soft:#e6f3ea; --bad:#b4372f; --bad-soft:#fbe9e7; --warn:#a46a12; --warn-soft:#fbf1df;
+  --display:"Noto Serif TC","Songti TC",serif; --body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#14181f; --sheet:#1c222b; --ink:#e8ebf0; --muted:#9aa3b2; --line:#2f3743;
+  --card-red:#e0675f; --card-red-soft:#3a2224; --graphite:#c9ced8;
+  --ok:#6cc08d; --ok-soft:#1e3326; --bad:#ec7a70; --bad-soft:#3b2220; --warn:#e2ae55; --warn-soft:#3a2f1b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#14181f; --sheet:#1c222b; --ink:#e8ebf0; --muted:#9aa3b2; --line:#2f3743;
+  --card-red:#e0675f; --card-red-soft:#3a2224; --graphite:#c9ced8;
+  --ok:#6cc08d; --ok-soft:#1e3326; --bad:#ec7a70; --bad-soft:#3b2220; --warn:#e2ae55; --warn-soft:#3a2f1b; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.7;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 48px}
+.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;border-bottom:2px solid var(--card-red);padding-bottom:10px}
+.eyebrow{font-size:12px;letter-spacing:.14em;color:var(--card-red);font-weight:700}
+h1{font-family:var(--display);font-weight:900;font-size:clamp(26px,5vw,34px);margin:0;line-height:1.25;text-wrap:balance}
+h2{font-family:var(--display);font-weight:600;font-size:20px;margin:0}
+.sub{color:var(--muted);font-size:13px;display:grid;gap:2px;text-align:right}
+.sync{font-size:12px}
+.sync.on{color:var(--ok)}
+.sheet{background:var(--sheet);border:1px solid var(--line);border-radius:6px;padding:20px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.label{font-size:12px;letter-spacing:.12em;color:var(--muted);font-weight:700}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1.5px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:6px 14px;font:inherit;font-size:14px;cursor:pointer}
+.chip[aria-pressed="true"]{border-color:var(--card-red);background:var(--card-red-soft);color:var(--card-red);font-weight:700}
+.chip:focus-visible,.btn:focus-visible,.opt:focus-visible,.tab:focus-visible,.eitem:focus-visible,textarea:focus-visible{outline:3px solid var(--card-red);outline-offset:2px}
+.tabs{display:flex;gap:0;border-bottom:1.5px solid var(--line)}
+.tab{font:inherit;font-weight:700;font-size:15px;background:transparent;border:0;border-bottom:3px solid transparent;color:var(--muted);padding:8px 16px;cursor:pointer;margin-bottom:-1.5px}
+.tab[aria-selected="true"]{color:var(--card-red);border-bottom-color:var(--card-red)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{font:inherit;font-weight:700;border-radius:6px;padding:10px 20px;cursor:pointer;border:1.5px solid var(--ink);background:var(--ink);color:var(--sheet)}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn.small{padding:6px 12px;font-size:13px;font-weight:500}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.ubars{display:grid;gap:8px}
+.ubar{display:grid;grid-template-columns:minmax(0,9.5em) 1fr 6.5em;gap:10px;align-items:center;font-size:14px}
+.ubar.left{grid-template-columns:minmax(0,9.5em) 1fr auto}
+.ubar.left .btn,.ubar.left .pill{white-space:nowrap}
+.ubar .track{height:10px;background:var(--line);border-radius:5px;overflow:hidden}
+.ubar .fill{height:100%;background:var(--ok)}
+.ubar .fill.mid{background:var(--warn)} .ubar .fill.low{background:var(--bad)}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right;color:var(--muted);font-size:13px}
+.today{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.stat{border:1px solid var(--line);border-radius:6px;padding:10px 12px;display:grid;gap:2px}
+.stat .v{font-family:var(--mono);font-size:24px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.stat .k{font-size:12px;color:var(--muted)}
+@media (max-width:520px){.today{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;align-items:end;height:96px}
+.day{display:grid;grid-template-rows:1fr auto auto;gap:2px;height:100%;text-align:center;font-size:11px;color:var(--muted)}
+.day .col{display:flex;flex-direction:column;justify-content:flex-end;background:var(--paper);border-radius:3px;overflow:hidden}
+.day .col i{display:block;background:var(--graphite)}
+.day .col i.w{background:var(--bad)}
+.day.now{color:var(--card-red);font-weight:700}
+.resume{border:1.5px dashed var(--card-red);border-radius:6px;padding:12px 14px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.card{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.bub{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--card-red);display:grid;place-items:center;font-family:var(--mono);font-size:12px;color:var(--card-red)}
+.bub.ok{background:var(--graphite);border-color:var(--graphite);color:var(--sheet)}
+.bub.bad{background:transparent;border-color:var(--bad);color:var(--bad);text-decoration:line-through}
+.bub.now{box-shadow:0 0 0 3px var(--card-red-soft)}
+.qhead{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.tag{display:inline-block;font-size:12px;padding:1px 8px;border-radius:3px;background:var(--card-red-soft);color:var(--card-red);font-weight:700}
+.stem{font-size:17px}
+.src{color:var(--card-red);font-size:13px;white-space:nowrap}
+.opts{display:grid;gap:8px}
+.opt{display:flex;gap:12px;align-items:flex-start;text-align:left;font:inherit;font-size:15px;color:var(--ink);background:transparent;border:1.5px solid var(--line);border-radius:6px;padding:10px 12px;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--graphite)}
+.opt .b{flex:none;width:26px;height:26px;border-radius:50%;border:1.5px solid var(--card-red);color:var(--card-red);display:grid;place-items:center;font-family:var(--mono);font-size:12px;margin-top:1px}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)} .opt.right .b{background:var(--ok);border-color:var(--ok);color:var(--sheet)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)} .opt.wrong .b{background:var(--bad);border-color:var(--bad);color:var(--sheet)}
+.opt:disabled{cursor:default}
+.fb{border-left:4px solid var(--ok);background:var(--ok-soft);padding:10px 14px;border-radius:0 6px 6px 0;font-size:15px}
+.fb.no{border-color:var(--bad);background:var(--bad-soft)}
+.fb b{display:block}
+.score{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.score .big{font-family:var(--display);font-weight:900;font-size:56px;line-height:1;color:var(--card-red)}
+.adv{display:grid;gap:12px}
+.unitAdv{border:1px solid var(--line);border-radius:6px;padding:12px 14px;display:grid;gap:8px}
+.unitAdv h3{margin:0;font-size:16px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.con{display:grid;gap:2px;padding-left:12px;border-left:3px solid var(--warn)}
+.con.hot{border-color:var(--bad)}
+.con .cn{font-weight:700}
+.con .cs{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.con .tip{font-size:14px;color:var(--muted)}
+.pill{font-size:12px;padding:1px 8px;border-radius:999px;font-weight:700;white-space:nowrap}
+.pill.bad{background:var(--bad-soft);color:var(--bad)} .pill.warn{background:var(--warn-soft);color:var(--warn)} .pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.none{background:var(--paper);color:var(--muted)}
+details{border-top:1px solid var(--line);padding-top:10px}
+summary{cursor:pointer;font-weight:700}
+.wl{display:grid;gap:12px;margin-top:10px;font-size:14px}
+.wl .it{display:grid;gap:4px}
+.muted{color:var(--muted);font-size:14px}
+.confirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--bad)}
+/* essay */
+.elist{display:grid;gap:8px}
+.eitem{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;text-align:left;font:inherit;font-size:14px;color:var(--ink);background:transparent;border:1px solid var(--line);border-radius:6px;padding:10px 12px;cursor:pointer}
+.eitem:hover{border-color:var(--graphite)}
+.eitem .t{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.eitem .s{font-size:12px;color:var(--card-red)}
+.ctx{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:10px 14px;font-size:15px}
+.ctx .lab{display:block;font-weight:700;color:var(--muted);font-size:12px;letter-spacing:.1em}
+.guide{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 6px 6px 0}
+.guide ol{margin:4px 0 0;padding-left:20px} .guide li{margin:3px 0}
+.guide b{color:var(--warn)}
+textarea{width:100%;min-height:160px;font:inherit;font-size:15px;line-height:1.7;color:var(--ink);background:var(--sheet);border:1.5px solid var(--line);border-radius:6px;padding:10px 12px;resize:vertical}
+.ref{border:1px solid var(--ok);background:var(--ok-soft);border-radius:6px;padding:10px 14px;font-size:15px;overflow-x:auto}
+.ref p{margin:4px 0} .ref ol,.ref ul{margin:4px 0;padding-left:22px}
+table.t{border-collapse:collapse;margin:6px 0;font-size:14px;width:100%}
+table.t th,table.t td{border:1px solid var(--line);padding:4px 8px;vertical-align:top}
+table.t th{background:var(--paper)}
+.tbl{overflow-x:auto}
+.box{border:1px dashed var(--muted);padding:6px 10px;margin:6px 0;border-radius:4px}
+.tip{color:var(--muted);font-size:13px}
+.rate{display:flex;gap:8px;flex-wrap:wrap}
+.rate .chip[data-r="ok"][aria-pressed="true"]{border-color:var(--ok);background:var(--ok-soft);color:var(--ok)}
+.rate .chip[data-r="part"][aria-pressed="true"]{border-color:var(--warn);background:var(--warn-soft);color:var(--warn)}
+.rate .chip[data-r="no"][aria-pressed="true"]{border-color:var(--bad);background:var(--bad-soft);color:var(--bad)}
+.favbtn{font:inherit;font-size:13px;font-weight:700;border-radius:999px;padding:4px 12px;cursor:pointer;border:1.5px solid var(--warn);background:transparent;color:var(--warn)}
+.favbtn[aria-pressed="true"]{background:var(--warn);color:var(--sheet)}
+.favbtn:focus-visible{outline:3px solid var(--card-red);outline-offset:2px}
+.exbox{border:1px solid var(--line);border-radius:6px;padding:12px 14px;display:grid;gap:10px;background:var(--sheet)}
+.exbox .ai{white-space:pre-wrap;font-size:15px;line-height:1.75}
+.exbox .ai.wait{color:var(--muted)}
+.pees{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin:0;font-size:15px}
+.pees dt{font-weight:700;color:var(--card-red);font-size:13px;white-space:nowrap;padding-top:2px}
+.pees dd{margin:0}
+@media (max-width:480px){.pees{grid-template-columns:1fr}.pees dd{margin-bottom:4px}}
+.mn{margin:0;padding-left:20px;font-size:14px}.mn li{margin:3px 0}
+.links{display:flex;flex-wrap:wrap;gap:8px}
+.links a{font-size:13px;color:var(--card-red);border:1px solid var(--card-red);border-radius:999px;padding:3px 10px;text-decoration:none}
+.links a:hover{background:var(--card-red-soft)}
+.note{min-height:80px}
+details.notebox{border:1px solid var(--line);border-radius:6px;padding:0 12px;background:var(--sheet)}
+details.notebox summary{font-size:13px;font-weight:500;color:var(--muted);padding:7px 0;list-style:none;display:flex;gap:6px;align-items:center}
+details.notebox summary::-webkit-details-marker{display:none}
+details.notebox summary::before{content:"▸";font-size:11px;transition:transform .15s}
+details.notebox[open] summary::before{transform:rotate(90deg)}
+details.notebox .has{color:var(--warn);font-weight:700}
+details.notebox textarea{min-height:70px;margin-bottom:10px;font-size:14px}
+.ver{font-size:12px;color:var(--muted)}
+.ver summary{font-weight:500;font-size:12px}
+.ver ul{margin:4px 0;padding-left:18px}
+@media (prefers-reduced-motion:no-preference){.sheet{animation:in .25s ease-out both}@keyframes in{from{transform:translateY(4px);opacity:.6}to{transform:none;opacity:1}}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div><div class="eyebrow">115-1 教育心理學・期中考</div><h1>教心考古題闖關</h1></div>
+    <div class="sub"><span>100–115 年教檢・選擇 <span id="total"></span> 題・非選 <span id="etotal"></span> 題</span><span class="sync" id="sync">進度存在這個瀏覽器</span></div>
+  </header>
+  <main id="app"></main>
+  <details class="ver"><summary>版本 v8・2026-10-23 更新</summary><ul>
+    <li>v8：「我求詳解」改為一鍵複製題幹並用 Google 搜尋，不使用 Claude 額度。</li>
+    <li>v7：首頁顯示各單元還沒做過的題數，可一鍵做完剩下的題目（不重複出題）。</li>
+    <li>v6：收藏專區可「只練收藏的選擇題」。</li>
+    <li>v5：Claude 詳解改為 Point、詮釋、Example、小總結四段（300 字內），附記憶口訣，比較相近概念時附對照表。</li>
+    <li>v4：新增「收藏」專區、每題可收合的「我的筆記」（作答後出現，之後再遇到同一題都看得到），以及「我求詳解」：Claude 逐項解析選項，並附網路搜尋連結。</li>
+    <li>v3：每日作答進度跨日保存（登入時同步到你的帳號）；未完成的一回可以接著做；新增「非選擇題練習」與作答指引、自評。</li>
+    <li>v2：作答中可回上一題、可離開回首頁。</li>
+    <li>v1：選擇題 10 題闖關與補強建議。</li></ul></details>
+</div>
+
+<script>
+const DATA = {"units": {"u2": "單元二 認知與語言發展", "u5": "單元五 行為學派", "u8": "單元八 皮亞傑與維高斯基的教學運用", "u10": "單元十 直接教學法", "u12": "單元十二 班級經營"}, "concepts": {"sens": {"n": "感覺動作期：物體恆存", "tip": "物體恆存出現在感覺動作期（約 8–12 個月起）；別和「保留概念」搞混，後者是具體運思期的里程碑。"}, "pre": {"n": "前運思期：自我中心", "tip": "自我中心＝無法採取他人觀點（三山實驗、躲貓貓遮眼、點頭講電話）。還要記得萬物有靈、前因推理等前運思期特徵。"}, "cons": {"n": "保留概念、可逆性與知覺集中", "tip": "知覺集中→只看單一向度（水位高低）；具體運思期以可逆性、去集中化獲得保留。保留發展順序：數量→長度→（液量／質量）→重量→體積。"}, "conc": {"n": "具體運思期與形式運思期", "tip": "具體：分類、序列化、遞移推理，但限於具體事物。形式：假設演繹、控制變因（鐘擺實驗）、命題與抽象思考。"}, "vyg": {"n": "維高斯基：社會文化觀與私語", "tip": "發展源於社會互動與文化工具；私語是引導思考的工具，任務越難私語越多（皮亞傑則視為自我中心、不成熟）。"}, "brain": {"n": "大腦結構與發展", "tip": "前額葉：計畫、抑制、情緒調節，最晚成熟（青少年冒險）；海馬迴：記憶；杏仁核：負向情緒；小腦：動作平衡；枕葉視覺、顳葉聽覺、頂葉體感。"}, "lang": {"n": "語言發展", "tip": "聲韻覺識（分辨ㄥ/ㄣ）、語用（比喻、反諷、顧及聽者）、口語敘事、雙語對執行功能的益處；比喻與反諷理解在學齡期較晚成熟。"}, "cmp": {"n": "認知發展理論比較", "tip": "皮亞傑：個體主動建構；布魯納：動作→圖像→符號表徵，教育可促進發展；維高斯基：社會互動中建構，兒童仍是主動的。"}, "rp": {"n": "增強與懲罰的辨別", "tip": "先問「行為之後增加或減少？」再問「給予或移除刺激？」。負增強＝移除嫌惡刺激使行為增加（肚子痛逃考試、整理好就下課），不是懲罰。"}, "cc": {"n": "古典制約（含系統減敏感）", "tip": "中性刺激與非制約刺激配對→情緒反應（嚴厲斥責→討厭數學）。系統減敏感＝焦慮階層＋放鬆，是反制約。區分：操作制約看「行為後果」。"}, "rtype": {"n": "增強物類型與普墨克原則", "tip": "原級（食物）vs 次級／類化（金錢、代幣、讚美）；普墨克原則＝用高偏好活動增強低偏好活動。"}, "sched": {"n": "增強時制", "tip": "建立新行為用連續增強，維持行為改間歇增強。固定／變動 ×比率（次數）／時距（時間）；變動比率最抗消弱。"}, "ext": {"n": "消弱", "tip": "不理會以消除行為，初期常出現消弱爆發（更頻繁更大聲），之後可能自發恢復；須全面、一致地移除增強來源。"}, "bmod": {"n": "行為改變技術", "tip": "行為塑造步驟：確定目標行為→基準線→選增強物→塑造→評估。代幣制、過度矯正（恢復原狀＋正向練習）、反應代價、暫停法要能分辨。"}, "soc": {"n": "社會學習論：觀察學習", "tip": "觀察學習四歷程：注意→保持→再生→動機；替代增強／替代懲罰；直接、綜合、象徵、抽象模仿（象徵＝模仿角色特質）。"}, "eff": {"n": "自我效能與交互決定論", "tip": "效能四來源：過去成就（最強）、替代經驗、言語說服、生理情緒；三元交互決定論＝個人、行為、環境相互影響。"}, "zpd": {"n": "維高斯基：可能發展區與鷹架", "tip": "ZPD 是「獨立表現」到「協助下表現」的區間，不是單一分數；鷹架要隨能力提升逐步撤除（交互教學、小老師、階梯式提問）。"}, "pia8": {"n": "皮亞傑的教學運用", "tip": "製造認知衝突→失衡→調適；具體運思期學生先具體操作（教具），再半具體、抽象。"}, "cons8": {"n": "建構取向教學與理論區辨", "tip": "建構取向重主動探索、討論、發現學習；動手操作從經驗中學習偏皮亞傑，強調他人協助、私語、鷹架偏維高斯基。"}, "set": {"n": "開場：引起注意與建立心向", "tip": "直接教學法第一步：陳述目標、建立積極心向（mental set）、引起注意、複習先備知識，而不是一上課就講教材。"}, "step": {"n": "直接教學法流程", "tip": "陳述目標→建立心向／複習→呈現新教材（示範、規則－範例－規則）→引導練習（提問、候答時間）→獨立練習→評量回饋→分散練習。"}, "prac": {"n": "練習與複習", "tip": "分散練習優於集中練習；課堂作業要監控、簡短，並安排定期複習。"}, "ati": {"n": "直接教學法的適用性", "tip": "性向處理交互作用（ATI）：直接教學法對低成就學生、基本技能較有效，並非萬靈丹。"}, "kou": {"n": "庫寧的班級經營技巧", "tip": "全面掌控（withitness）、同時處理（overlapping）、漣漪效應、動作管理與活動轉換（事先預告、建立慣例）、低調介入（預測→轉向→回應）。"}, "dre": {"n": "德瑞克斯：錯誤目標與邏輯後果", "tip": "四錯誤目標：尋求注意、權力、報復、顯示無能（看老師的感受與糾正後反應）；邏輯後果須與行為相關、合理、尊重；自然後果不由他人安排；鼓勵重過程、讚賞重結果。"}, "imsg": {"n": "我訊息", "tip": "三要素：描述行為＋對我的具體影響＋我的感受（可加期望）；避免指責、評價的「你訊息」。"}, "beh": {"n": "果斷紀律與行為取向班級經營", "tip": "坎特果斷紀律：明確規則、堅定不敵意地要求；行為取向：分析經驗→訂班規→訂獎懲標準。"}, "pos": {"n": "正向管教與衝突處理", "tip": "理解行為背後原因、討論後果、增強理性溝通；衝突需立即明確處理，不冷處理、不讓圍觀。"}, "env": {"n": "班級環境：佈置、座位、氣氛", "tip": "佈置配合課程、人人有作品展示；座位不依成績排；共同目標與增強利社會行為可提升合作氣氛；重情意的經營方式。"}, "parent": {"n": "親師溝通", "tip": "先了解原因再說明用意；三明治溝通：肯定→問題與請求→鼓勵作結。"}}, "qs": [{"id": "u2-1", "u": "u2", "c": "vyg", "src": "101年 教育原理與制度 選擇題第2題", "q": "維高思基(L. Vygotsky)強調下列何者是影響認知發展的重要因素？", "o": ["社會文化", "生理成熟", "道德發展", "人格特質"], "a": 0, "e": "維高斯基的社會文化觀主張認知發展源自社會互動與文化工具（語言）。"}, {"id": "u2-2", "u": "u2", "c": "sens", "src": "102年 教育原理與制度 選擇題第6題", "q": "根據皮亞傑(J. Piaget)的觀點，有關物體恆存(object permanence)概念的描述，下列何者正確？", "o": ["物體恆存概念開始出現在具體運思期", "物體恆存概念的出現，是因為兒童已經具備抽象思考能力", "具有物體恆存概念的嬰兒，不會因為某物體在他面前消失，就認為它不存在", "物體恆存概念指的是物體某方面的特徵，將不因其另方面特徵的改變而改變"], "a": 2, "e": "物體恆存出現在感覺動作期；(D)描述的是保留概念。"}, {"id": "u2-3", "u": "u2", "c": "pre", "src": "103年 教育原理與制度 選擇題第10題", "q": "小哲跟老師說：「老師我最喜歡妳，等我長大要跟妳結婚！」老師笑著說：「謝謝小哲，但是等你長大老師已經老了。」小哲說：「沒關係，等我跟妳一樣老了，我們再結婚。」根據皮亞傑(J. Piaget)的認知發展論，小哲的思考具有哪一個發展階段的特色？", "o": ["前運思期的自我中心", "形式運思期的命題推理", "感覺動作期的缺乏物質恆存性", "具體運思期的思考受具體事物影響"], "a": 0, "e": "只從自己的角度思考，未考慮老師也會變老，屬前運思期自我中心。"}, {"id": "u2-4", "u": "u2", "c": "cons", "src": "104年 教育原理與制度 選擇題第5題", "q": "老師將杯子中的水倒入水桶中，小宇始終堅持原本的杯子裡的水比水桶中的水還要多。根據皮亞傑(J. Piaget)的認知發展論，小宇的思考模式具有哪一個發展階段的特色？", "o": ["形式運思期的組合推理", "前運思期的知覺集中傾向", "感覺動作期的缺乏物體恆存性", "具體運思期的去知覺集中傾向"], "a": 1, "e": "只注意水位高度單一向度，缺乏保留概念，屬前運思期知覺集中。"}, {"id": "u2-5", "u": "u2", "c": "pre", "src": "105年 教育原理與制度 選擇題第1題", "q": "小安在玩躲迷藏的遊戲時，跑到每個人都可以看得到他的角落蹲下並用手遮住自己的眼睛。小安的行為表現比較符合皮亞傑(J. Piaget)哪一個階段的描述？", "o": ["前運思期", "形式運思期", "感覺動作期", "具體運思期"], "a": 0, "e": "以為自己看不見別人，別人也看不見自己——自我中心，屬前運思期。"}, {"id": "u2-6", "u": "u2", "c": "cons", "src": "108年第一次 教育原理與制度 選擇題第3題", "q": "媽媽給小靖一片餅乾。小靖說想多吃一點，媽媽便將餅乾剝成兩半後，小靖就覺得他的餅乾變多了。根據皮亞傑(J. Piaget)的觀點，小靖的認知能力正處於哪一個階段？", "o": ["感覺動作期", "前運思期", "具體運思期", "形式運思期"], "a": 1, "e": "尚未具備數量／質量保留概念，屬前運思期。"}, {"id": "u2-7", "u": "u2", "c": "cons", "src": "108年第二次 教育原理與制度 選擇題第3題", "q": "餐桌上有 2 杯一樣多的蘋果汁，媽媽將其中一杯蘋果汁倒入另一個比原來高且瘦的長頸鹿杯子中，這時小明搶著要喝長頸鹿杯子的蘋果汁，小玲覺得沒關係，反正 2 杯蘋果汁一樣多。根據皮亞傑(J. Piaget)的理論，小玲的反應顯示她已經具備下列何者？", "o": ["類包含(class inclusion)", "守恆概念(conservation)", "知覺集中(perceptual centration)", "命題推理(propositional reasoning)"], "a": 1, "e": "了解液體換容器後量不變，即守恆（保留）概念。"}, {"id": "u2-8", "u": "u2", "c": "pre", "src": "109年 教育原理與制度 選擇題第1題", "q": "三歲謙謙與媽媽通電話時，以點頭回答媽媽的問話。雖然彼此看不到，但謙謙認為媽媽知道他的回應。謙謙的行為符合皮亞傑(J. Piaget)發展理論的哪一個概念？", "o": ["物體恆存", "心像保留", "自我中心", "知覺集中"], "a": 2, "e": "無法站在媽媽（看不到）的觀點思考，屬自我中心。"}, {"id": "u2-9", "u": "u2", "c": "lang", "src": "110年 學習者發展與適性輔導 選擇題第7題", "q": "小華分不出「ㄥ」和「ㄣ」的差別，請問小華缺乏何種能力？", "o": ["辨識文字", "語意理解", "語言理解", "聲韻覺識"], "a": 3, "e": "辨別語音單位（韻母）屬聲韻覺識，是一種後設語言覺察。"}, {"id": "u2-10", "u": "u2", "c": "brain", "src": "110年 學習者發展與適性輔導 選擇題第9題", "q": "小新的大腦海馬迴受損，他最可能出現下列哪一種問題？", "o": ["無法控制情緒常發脾氣", "身體動作不協調時常跌倒", "無法判斷對話中的弦外之音", "記不住老師課堂的教學內容"], "a": 3, "e": "海馬迴與學習、記憶有關；(A)杏仁核／前額葉，(B)小腦。"}, {"id": "u2-11", "u": "u2", "c": "conc", "src": "110年 學習者發展與適性輔導 選擇題第18題", "q": "如果兒童知道小明拿到的耶誕禮物數量多於小華，且小華的禮物數量多於小宣。他就能夠瞭解小明拿的禮物最多。表示他具備下列哪一種概念？", "o": ["分類", "去集中化", "後設認知", "遞移推論"], "a": 3, "e": "A＞B、B＞C 推得 A＞C，為具體運思期的遞移推理。"}, {"id": "u2-12", "u": "u2", "c": "brain", "src": "111年 學習者發展與適性輔導 選擇題第2題", "q": "小光常有上課不專心、容易衝動發言、做事缺乏計畫性等行為表現。他最有可能是哪一腦區的功能有所缺損？", "o": ["胼胝體", "邊緣系統", "顳葉皮質區", "前額葉皮質區"], "a": 3, "e": "前額葉負責注意力、抑制控制與計畫等執行功能。"}, {"id": "u2-13", "u": "u2", "c": "lang", "src": "111年 學習者發展與適性輔導 選擇題第3題", "q": "下列哪一種方法不適合用於評量學齡兒童的口語敘事能力？", "o": ["背誦詩詞", "自述經驗", "自我介紹", "看圖說故事"], "a": 0, "e": "背誦是記憶複述，不涉及自行組織敘事。"}, {"id": "u2-14", "u": "u2", "c": "vyg", "src": "111年 學習者發展與適性輔導 選擇題第15題", "q": "皮亞傑(J. Piaget)與維高思基(L. S. Vygotsky)對於兒童「自言自語」的行為，提出了不同的觀點，下列敘述何者錯誤？", "o": ["皮亞傑認為這是兒童自我中心的一種表現", "維高思基認為內在對話能力是高層次認知歷程的發展特徵", "皮亞傑認為兒童自言自語的行為反映兒童認知發展尚未成熟", "維高思基認為當工作變得比較難時，兒童自言自語的表現會減少"], "a": 3, "e": "維高斯基認為任務越困難，私語（自言自語）越多，用以引導思考。"}, {"id": "u2-15", "u": "u2", "c": "conc", "src": "111年 學習者發展與適性輔導 選擇題第20題", "q": "下列哪位兒童的認知發展最有可能已經進入形式運思期？", "o": ["小忠能夠控制變因，找出影響鐘擺速度的因素", "小美將鉛筆盒中的筆按照長短排列，並加以分類", "小花能理解毛毛蟲轉變成蛹再轉變成蝴蝶的歷程", "小明知道液體從 A 杯倒入 B 杯，體積仍不會改變"], "a": 0, "e": "鐘擺實驗需假設演繹、系統控制變因，屬形式運思；(B)(D)為具體運思。"}, {"id": "u2-16", "u": "u2", "c": "lang", "src": "111年 學習者發展與適性輔導 選擇題第21題", "q": "小學五年級的小和來自新移民家庭，平常就能夠很自然的使用國語以及越南語溝通。相較於只習慣使用國語溝通的同學，小和在下列哪一項能力的發展較為有利？", "o": ["執行功能", "情緒覺察", "圖形辨識", "知覺廣度"], "a": 0, "e": "雙語者需經常切換、抑制另一語言，有利於執行功能（抑制控制、認知彈性）。"}, {"id": "u2-17", "u": "u2", "c": "lang", "src": "111年 學習者發展與適性輔導 選擇題第25題", "q": "陳老師是國小一年級的導師。有一天，班上小朋友非常吵鬧，陳老師很生氣地說：「你們的聲音快把屋頂掀掉了！」小朋友看著屋頂滿臉疑惑的說：「屋頂好好的啊！」針對小朋友的反應，下列解釋何者較為正確？", "o": ["學生對陳老師這麼說很不高興，所以故意說那些話氣陳老師", "這班學生可能在語言上有發展遲緩的現象，才會聽不懂陳老師的話", "當時班上實在太吵了，學生沒有注意陳老師說什麼，所以聽不懂老師的話", "理解比喻和反諷語的發展年齡較晚，小一學生聽不懂陳老師的話是正常的"], "a": 3, "e": "比喻、反諷等非字面語言的理解屬語用與後設語言能力，學齡中後期才較成熟。"}, {"id": "u2-18", "u": "u2", "c": "brain", "src": "112年 學習者發展與適性輔導 選擇題第1題", "q": "下列大腦區域何者與情緒控制較有關係？", "o": ["額葉", "頂葉", "枕葉", "顳葉"], "a": 0, "e": "額葉（前額葉）負責高層次認知與情緒調控；頂葉觸覺、枕葉視覺、顳葉聽覺。"}, {"id": "u2-19", "u": "u2", "c": "cons", "src": "113年 學習者發展與適性輔導 選擇題第2題", "q": "兒童若能瞭解「8 + 6 = 14」，以及「14 − 6 = 8」，需要具備下列何種運思能力？", "o": ["集中性", "遞移性", "可逆性", "恆存性"], "a": 2, "e": "能將運算反向回到原點，即可逆性。"}, {"id": "u2-20", "u": "u2", "c": "cons", "src": "113年 學習者發展與適性輔導 選擇題第6題", "q": "皮亞傑(J. Piaget)的認知理論中，兒童對保留概念的發展順序，下列何者正確？", "o": ["重量保留→數量保留→長度保留→質量保留", "長度保留→數量保留→體積保留→重量保留", "質量保留→重量保留→數量保留→體積保留", "數量保留→長度保留→重量保留→體積保留"], "a": 3, "e": "一般順序：數量→長度→（液量／質量）→重量→體積（體積最晚）。"}, {"id": "u2-21", "u": "u2", "c": "vyg", "src": "113年 學習者發展與適性輔導 選擇題第13題", "q": "張老師發現一年級的小恩在數學考試時會喃喃自語。根據維高斯基(L. Vygotsky)對認知發展的看法，下列關於小恩行為的解釋何者較適切？", "o": ["兒童自我中心的表現", "在運用語言幫助思考", "在透過複誦提取記憶", "因為無法集中注意力"], "a": 1, "e": "私語是引導、調節思考的工具；(A)為皮亞傑觀點。"}, {"id": "u2-22", "u": "u2", "c": "brain", "src": "113年 學習者發展與適性輔導 選擇題第23題", "q": "下列哪一項敘述較能說明青少年「不顧風險在懸崖邊自拍」的行為？", "o": ["處理高層次認知判斷的前額葉尚未發展成熟", "知覺集中傾向導致青少年容易忽視活動的風險", "後設認知的提升導致青少年認為自己不容易受傷", "掌管情緒經驗與感官刺激的邊緣系統尚未發展成熟"], "a": 0, "e": "前額葉（判斷、衝動抑制）最晚成熟，而邊緣系統在青春期已活躍，故易冒險。"}, {"id": "u2-23", "u": "u2", "c": "brain", "src": "114年 學習者發展與適性輔導 選擇題第1題", "q": "小朱一年級時，只要心情不好就會哭鬧或罵人。升上五年級後，他心情不好時已能用深呼吸讓自己平靜下來。請問，小朱的轉變跟大腦哪一部分的成熟比較有關？", "o": ["松果體", "胼胝體", "前額葉", "海馬迴"], "a": 2, "e": "情緒調節與自我控制主要與前額葉成熟有關。"}, {"id": "u2-24", "u": "u2", "c": "lang", "src": "114年 學習者發展與適性輔導 選擇題第17題", "q": "國小兒童能夠理解一個字詞可能有多重意義，能理解嘲諷的語言，且在敘事時能提供充分且明確的訊息幫助別人理解，最主要是因為在學齡期哪一項能力的改變所致？", "o": ["詞彙量大幅增長", "工作記憶容量加大", "語用覺識能力增強", "知道更多語法規則"], "a": 2, "e": "在情境中恰當理解與使用語言（嘲諷、顧及聽者）屬語用能力。"}, {"id": "u2-25", "u": "u2", "c": "conc", "src": "114年 學習者發展與適性輔導 選擇題第19題", "q": "小信能理解即使將水倒入形狀不同的容器，總量仍不改變。他也能依長短將吸管排列順序，並逐漸可以同時考慮事物的多個面向。下列何者最符合小信的認知發展？", "o": ["能對具體事物進行邏輯思考", "能以抽象邏輯進行假設推理", "主要學習方式是模仿教師行為", "傾向單一視角，難理解因果關係"], "a": 0, "e": "保留、序列化、去集中化，屬具體運思期。"}, {"id": "u2-26", "u": "u2", "c": "vyg", "src": "115年 學習者發展與適性輔導 選擇題第6題", "q": "小華在解數學題時總是會喃喃自語，讓鄰座同學感到困擾。根據維高斯基(L. Vygotsky)的理論，下列敘述何者正確？", "o": ["小華的自我中心讓他會自言自語", "小華是為了引起注意而故意發出聲音", "小華是在使用語言進行認知自我調整", "小華欠缺自我控制不發出聲音的能力"], "a": 2, "e": "私語是自我引導、自我調整思考的工具。"}, {"id": "u2-27", "u": "u2", "c": "cmp", "src": "115年 學習者發展與適性輔導 選擇題第21題", "q": "關於認知發展理論的敘述，下列何者正確？<br>甲、皮亞傑(J. Piaget)認為兒童會主動建構認知結構<br>乙、行為學派認為兒童認知結構是靠後天文化與學習歷程而建構<br>丙、布魯納(J. Bruner)認為兒童是主動求知者，教育則可以促進認知發展<br>丁、維高斯基(L. Vygotsky)認為兒童在認知發展過程中不具自主性，而是靠外在環境建構認知", "o": ["甲乙", "乙丁", "丙丁", "甲丙"], "a": 3, "e": "行為學派不談「認知結構」；維高斯基認為兒童在社會互動中主動建構，並非被動。"}, {"id": "u5-1", "u": "u5", "c": "soc", "src": "100年 教育原理與制度 選擇題第1題", "q": "學校常公開表揚學業或品行方面有良好表現的同學，希望作為其他同學的楷模。這主要是依據下列哪一個學者的觀點？", "o": ["史金納(B. Skinner)的操作制約", "桑代克(E. Thorndike)的準備律", "巴夫洛夫(I. Pavlov)的古典制約", "班度拉(A. Bandura)的社會學習論"], "a": 3, "e": "樹立楷模供觀察模仿（替代增強），屬社會學習論。"}, {"id": "u5-2", "u": "u5", "c": "rp", "src": "100年 教育原理與制度 選擇題第8題", "q": "小華由於家庭作業常無法準時完成而被禁足。爸爸決定如果小華放學回到家可以馬上完成當天作業，就可以取消禁足。這是利用史金納(B. Skinner)的哪一種概念？", "o": ["懲罰", "負增強", "效果律", "正增強"], "a": 1, "e": "行為出現後移除嫌惡刺激（禁足），使行為增加，為負增強。"}, {"id": "u5-3", "u": "u5", "c": "cc", "src": "101年 教育原理與制度 選擇題第3題", "q": "王老師教數學時要求嚴格，經常斥責學生，導致學生變得不喜歡數學課。這種現象可用下列何種原理解釋？", "o": ["漣漪效應(ripple effect)", "替代學習(vicarious learning)", "操作制約(operant conditioning)", "古典制約(classical conditioning)"], "a": 3, "e": "數學課（中性刺激）與斥責（引發負面情緒）配對，形成制約的厭惡情緒。"}, {"id": "u5-4", "u": "u5", "c": "rtype", "src": "101年 教育原理與制度 選擇題第7題", "q": "小麗喜歡電腦遊戲，而金錢可以買遊戲軟體。如果媽媽以發獎金做為鼓勵小麗用功的誘因，此時獎金的性質為何？", "o": ["負增強物", "原級增強物", "活動增強物", "次級增強物"], "a": 3, "e": "金錢本身無生理滿足，須與其他增強物連結，屬次級（類化）增強物。"}, {"id": "u5-5", "u": "u5", "c": "soc", "src": "102年 教育原理與制度 選擇題第2題", "q": "有關班度拉(A. Bandura)觀察學習的順序，下列何者正確？", "o": ["注意－動機－保持－再生", "注意－保持－再生－動機", "動機－注意－保持－再生", "動機－注意－再生－保持"], "a": 1, "e": "觀察學習四歷程：注意→保持（保留）→再生（動作再現）→動機。"}, {"id": "u5-6", "u": "u5", "c": "rp", "src": "102年 教育原理與制度 選擇題第5題", "q": "小明上課時喜歡交頭接耳，老師對他生氣地大聲責罵，暫時鎮壓他上課愛講話的行為。老師所採取的是下列何者？", "o": ["消弱(extinction)", "負增強(negative reinforcement)", "剝奪式懲罰(removal punishment)", "施予式懲罰(presentation punishment)"], "a": 3, "e": "給予嫌惡刺激（責罵）以減少行為，為施予式（呈現型）懲罰。"}, {"id": "u5-7", "u": "u5", "c": "rp", "src": "102年 教育原理與制度 選擇題第7題", "q": "小志常在考試前肚子痛，被送到保健室去，他就可以避開考試。小志肚子痛的行為之所以經常出現，可能是受到哪種作用影響？", "o": ["懲罰", "消弱", "正增強", "負增強"], "a": 3, "e": "肚子痛後可移除（逃避）考試這個嫌惡刺激，行為因而增加。"}, {"id": "u5-8", "u": "u5", "c": "soc", "src": "103年 教育原理與制度 選擇題第7題", "q": "學生觀看卡通節目以後，學習劇中主角所展現的性格特質。這種反應屬於班度拉(A. Bandura)社會學習論中的哪一種模仿？", "o": ["抽象模仿", "象徵模仿", "綜合模仿", "直接模仿"], "a": 1, "e": "模仿楷模所代表的性格、行為特質（非單一動作），為象徵模仿。"}, {"id": "u5-9", "u": "u5", "c": "soc", "src": "104年 教育原理與制度 選擇題第2題", "q": "「學生之所以會不斷出現校園霸凌的行為，最主要是因為媒體不斷的報導，讓學生有樣學樣的結果。」這樣的說法較偏向於下列哪一學派的觀點？", "o": ["行為主義論", "社會文化論", "社會學習論", "認知發展論"], "a": 2, "e": "透過觀察媒體楷模而模仿，屬社會學習論。"}, {"id": "u5-10", "u": "u5", "c": "cc", "src": "104年 教育原理與制度 選擇題第9題", "q": "下列何者屬於操作制約學習？", "o": ["小華害怕蟑螂，因為每次蟑螂出現他的媽媽就會大聲尖叫", "阿宏知道走哪一條路可以最快到達學校，因為他熟悉附近環境", "莉莉不在課堂上講話，因為她看到班上同學講話會被老師責罵", "小銘會以哭來引起父母的注意，因為他一哭就會得到父母的關注"], "a": 3, "e": "(A)古典制約；(B)認知地圖；(C)替代懲罰（社會學習）；(D)行為後果（關注）增強行為。"}, {"id": "u5-11", "u": "u5", "c": "rtype", "src": "105年 教育原理與制度 選擇題第2題", "q": "數學老師發現，當他要求學生做練習時，同學們都提不勁來寫，於是他告訴全班同學說：「如果你們能在下課前 10 分鐘寫完練習題，我就讓你們提早下課，無論是去打球或是看小說都可以。」下列哪一個概念較能說明老師使用的策略？", "o": ["延宕滿足(delay of gratification)", "替代增強(vicarious reinforcement)", "內在增強物(intrinsic reinforcer)", "普墨克原則(Premack principle)"], "a": 3, "e": "以高偏好活動（打球、看小說）增強低偏好活動（寫練習），即普墨克原則（祖母法則）。"}, {"id": "u5-12", "u": "u5", "c": "eff", "src": "105年 教育原理與制度 選擇題第7題", "q": "學生根據過去的成敗經驗，評估自己在接受新任務時，可以更加努力面臨挑戰。這較屬於班度拉(A. Bandura)所提出的下列何種概念？", "o": ["自我增強", "自我效能", "自我要求", "自我參照效應"], "a": 1, "e": "對自己能否完成特定任務的能力判斷，即自我效能；過去成就是其主要來源。"}, {"id": "u5-13", "u": "u5", "c": "eff", "src": "106年 教育原理與制度 選擇題第3題", "q": "為了激起學生學習英文的動機，林老師經常提醒學生學好英文可以改變自己的命運，只要改變自己對英文學習的看法，就能改變對自己英文學習能力的負面信念。從班度拉(A. Bandura)的自我效能論觀之，林老師是從哪一個面向提升學生的英語自我效能？", "o": ["楷模", "社會說服", "替代性經驗", "生理與情緒喚起"], "a": 1, "e": "以言語鼓勵、說服提升效能，屬社會（言語）說服。"}, {"id": "u5-14", "u": "u5", "c": "sched", "src": "110年 學習者發展與適性輔導 選擇題第15題", "q": "張老師發現用連續正增強的方式鼓勵曉方準時繳交家庭作業很有效，為了讓她轉化為自發性按時交作業，張老師應該採用下列何種方式？", "o": ["改用負增強", "立即停止增強", "增加正增強頻率", "改用間歇式增強"], "a": 3, "e": "新行為建立後改用間歇增強，行為較持久、較不易消弱。"}, {"id": "u5-15", "u": "u5", "c": "bmod", "src": "111年 學習者發展與適性輔導 選擇題第8題", "q": "育之把自己的座位弄得髒亂不堪，老師除了請他把座位清理乾淨，還要求他把教室打掃一遍。這是下列何種機制的應用？", "o": ["負增強", "饜足法", "反應代價", "過度矯正"], "a": 3, "e": "不只恢復原狀，還須做得更多（打掃整間教室），為過度矯正（恢復原狀＋正向練習）。"}, {"id": "u5-16", "u": "u5", "c": "rp", "src": "111年 學習者發展與適性輔導 選擇題第24題", "q": "全班同學跑完操場十圈之後，體育老師對著又餓又累急於下課的同學說：「你們什麼時候把體育用品整理好，就什麼時候下課。」老師運用的是下列何種機制？", "o": ["消弱", "負增強", "剝奪式懲罰", "施予式懲罰"], "a": 1, "e": "整理好即可移除「不能下課」的嫌惡狀態，使整理行為增加。"}, {"id": "u5-17", "u": "u5", "c": "sched", "src": "112年 學習者發展與適性輔導 選擇題第14題", "q": "根據行為學派的理論，老師輔導學生從事學習時，運用哪種增強方式較有效？", "o": ["當學生進步時，提高增強的頻率", "整個過程皆應使用立即與持續的增強", "一開始先持續性增強，之後再間歇性增強", "一開始先間歇性增強，之後再持續性增強"], "a": 2, "e": "建立新行為用連續增強，維持行為改用間歇增強。"}, {"id": "u5-18", "u": "u5", "c": "cc", "src": "112年 學習者發展與適性輔導 選擇題第22題", "q": "小家有高度的數學考試焦慮。李老師試著讓他想像會激起焦慮的考試情境，從引發輕微焦慮的情境直到引發劇烈焦慮的情境。同時引導他面對每一個情境學習放鬆、舒緩壓力，至終解除焦慮。李老師採用的是哪一種治療方法？", "o": ["現場暴露法", "系統減敏感法", "社會技巧訓練", "自我肯定訓練"], "a": 1, "e": "建立焦慮階層並與放鬆配對（反制約），為以古典制約為基礎的系統減敏感法。"}, {"id": "u5-19", "u": "u5", "c": "bmod", "src": "113年 學習者發展與適性輔導 選擇題第12題", "q": "李老師在學生出現作業缺交、干擾上課秩序等行為問題時，會登記缺點，一週累積達五次以上就需接受懲罰，若當週未被記缺點可累積加分，期末可換嘉獎或小禮物。李老師運用下列哪些原理？<br>甲、古典制約　乙、操作制約　丙、生理回饋　丁、代幣制度", "o": ["甲乙", "丙丁", "甲丙", "乙丁"], "a": 3, "e": "依行為後果給予獎懲（操作制約），累積點數兌換增強物（代幣制）。"}, {"id": "u5-20", "u": "u5", "c": "bmod", "src": "113年 學習者發展與適性輔導 選擇題第21題", "q": "四年級的小布頻繁出現干擾行為影響上課，導師決定使用以下五個步驟對小布的行為進行塑造。請選出正確的順序。<br>甲、行為塑造　乙、評估效果　丙、選擇適當增強物　丁、測定行為的基準線　戊、確定目標行為與終點行為", "o": ["甲乙丙丁戊", "戊丁乙甲丙", "戊丁丙甲乙", "丁甲丙戊乙"], "a": 2, "e": "確定目標行為→測基準線→選增強物→執行塑造→評估效果。"}, {"id": "u5-21", "u": "u5", "c": "soc", "src": "114年 學習者發展與適性輔導 選擇題第13題", "q": "小元在班級討論中分享自己的想法，卻遭到部分同學嘲笑，此後其他同學變得不太願意公開表達意見。依據班度拉(A. Bandura)的社會學習理論，下列何者最能解釋此一現象？", "o": ["模仿學習", "直接增強", "社會性增強", "替代性懲罰"], "a": 3, "e": "觀察他人行為受懲罰（被嘲笑）而減少自己的同類行為。"}, {"id": "u5-22", "u": "u5", "c": "ext", "src": "114年 學習者發展與適性輔導 選擇題第22題", "q": "小平為尋求關注，經常打斷老師並大聲提問或分享與課程無關的議題，老師為了回應他而影響課程進度。老師決定開始嘗試刻意不理會小平的發言，此後老師較可能面臨下列哪些狀況？<br>甲、小平會更頻繁、更大聲插話以獲得注意<br>乙、小平會因為沒有獲得老師關注而立刻停止隨意發言<br>丙、小平的干擾行為雖然暫時停止，但是可能某天又會故態復萌", "o": ["甲乙", "甲丙", "乙丙", "甲乙丙"], "a": 1, "e": "消弱初期常出現消弱爆發（甲），之後可能自發恢復（丙）；不會立刻停止。"}, {"id": "u5-23", "u": "u5", "c": "sched", "src": "115年 學習者發展與適性輔導 選擇題第15題", "q": "為鼓勵小平發言，剛開始時只要小平舉手，老師就會點他並給予正向回饋。後來，即使小平舉手，老師也不一定會點他，但平均舉手 3 次，就會點他 1 次。老師的增強時制從連續改為下列何者？", "o": ["固定時距時制", "變動時距時制", "固定比率時制", "變動比率時制"], "a": 3, "e": "依反應次數、且次數不固定（平均 3 次），為變動比率。"}, {"id": "u5-24", "u": "u5", "c": "eff", "src": "115年 學習者發展與適性輔導 選擇題第22題", "q": "下列哪一個例子最能完整反映班度拉(A. Bandura)的三元交互因果關係？", "o": ["小安的數學老師很鼓勵她多做數學題，並且適時給予獎勵和輔導，這讓小安的數學能力越來越好", "父母經常讚美小辰在學習上的努力，不但讓小辰對學習更有信心，也讓她調整了自己的學習目標", "小惠具備高學業自我效能，因而努力學習，使得成績優異，獲得老師的讚美後他更認真學習，對學業也更有信心", "小佑對下週段考的成績表現有高度期望，因此努力準備考試，他的努力不但得到老師的高度讚美，也讓父母讚不絕口"], "a": 2, "e": "個人（效能）→行為（努力）→環境（讚美）→又回饋個人與行為，三者交互影響。"}, {"id": "u8-1", "u": "u8", "c": "zpd", "src": "100年 教育原理與制度 選擇題第6題", "q": "老師使用小老師制度來提升學生的學習效果。這種做法比較接近下列哪一個概念的應用？", "o": ["行為塑造(shaping)", "漣漪效應(ripple effect)", "前導組體(advance organizer)", "可能發展區(the zone of proximal development)"], "a": 3, "e": "能力較佳同儕協助，使學生在可能發展區內提升表現。"}, {"id": "u8-2", "u": "u8", "c": "cons8", "src": "103年 教育原理與制度 選擇題第5題", "q": "吳老師採取建構論取向的教學，下列何者是他在課堂上最少運用的方法？", "o": ["小組實作", "團體討論", "聚斂式問答", "發現式教學"], "a": 2, "e": "建構取向重視學生主動探索與社會互動；聚斂式問答偏向教師主導、單一答案。"}, {"id": "u8-3", "u": "u8", "c": "pia8", "src": "108年第二次 教育原理與制度 選擇題第4題", "q": "張老師在進行教學時，經常會提供學生與其原有知識「矛盾的訊息」，讓學生探究其原因，並提出解釋。下列何者較能詮釋張老師的目的？", "o": ["提升學生的近側發展區", "引發認知失衡，形成基模的調適", "透過同儕互動提升學生的認知發展", "增進學生前運思期不可逆性思考的能力"], "a": 1, "e": "皮亞傑理論的教學運用：製造認知衝突（失衡），促使學生調適基模、重新平衡。"}, {"id": "u8-4", "u": "u8", "c": "cons8", "src": "108年第二次 教育原理與制度 選擇題第6題", "q": "下列何種做法較不符合維高斯基(L. Vygotsky)的認知發展論？", "o": ["鼓勵學生的私自話語(private speech)", "提供學生學習的鷹架(scaffolding)", "重視學生在他人協助下最大的可能表現", "強調學生動手操作，從經驗中學習新知識"], "a": 3, "e": "強調個人動手操作、從經驗中建構，較屬皮亞傑取向。"}, {"id": "u8-5", "u": "u8", "c": "zpd", "src": "112年 學習者發展與適性輔導 選擇題第10題", "q": "小英這次閱讀測驗考了 65 分，遠低於全班的平均成績，所以林老師讓他放學後留下接受課後輔導。老師使用交互教學法(reciprocal teaching)教小英摘要與提問等閱讀策略，並逐漸將責任轉移給小英。小英在一週後重寫相同測驗的複本，得到了 85 分。根據以上的情境，下列敘述何者錯誤？", "o": ["老師的作法符合維高思基(L. Vygotsky)的社會文化論", "老師提供的鷹架(scaffolding)有助於提升小英的閱讀表現", "85 分代表小英的近側發展區(zone of proximal development, ZPD)", "65 分可視為小英近側發展區(zone of proximal development, ZPD)的下限"], "a": 2, "e": "ZPD 是「獨立表現」與「協助下表現」之間的區間，不是某一個分數；65 分為下限（實際發展層次）。"}, {"id": "u8-6", "u": "u8", "c": "pia8", "src": "115年 學習者發展與適性輔導 選擇題第1題", "q": "黃老師在教五年級分數四則計算時，發現學生無法理解 1/3 和 4/12 為等值分數。依據皮亞傑(J. Piaget)的認知發展理論，下列何種教學策略較合適？", "o": ["提供數棒條或圓形切片，讓學生實際操作並比較整體大小", "直接示範約分或擴分的規則，並要求學生反覆的練習計算", "先測驗學生等值分數公式的知識，再依結果進行補救教學", "講解等值分數的計算步驟，讓學生模仿解題再練習應用題"], "a": 0, "e": "具體運思期學生需透過具體操作建構概念。"}, {"id": "u8-7", "u": "u8", "c": "zpd", "src": "115年 學習者發展與適性輔導 選擇題第13題", "q": "為了提升學生閱讀的理解層次，老師引導學生先說出故事的人、事、物，再分享角色的動機與情緒，最後討論作者的意圖並評價文章的觀點。此做法較符合下列何者？", "o": ["社會文化觀點的鷹架支持策略", "社會文化觀點的個別差異教學", "社會認知觀點的自我調整策略", "社會認知觀點的增強學習策略"], "a": 0, "e": "教師以階梯式提問由淺入深引導，屬鷹架支持。"}, {"id": "u10-1", "u": "u10", "c": "set", "src": "101年 教育原理與制度 選擇題第10題", "q": "開始上課時，教師採取某些措施，讓學生做好心理準備，以儘快進入學習狀態。這是何種原則在教學情境的應用？", "o": ["同化作用(assimilation)", "心向作用(mental set)", "平衡作用(equilibration)", "自動化作用(automaticity)"], "a": 1, "e": "直接教學法第一步「使學生適應課程」：建立積極的心向（準備好學習的態度）。"}, {"id": "u10-2", "u": "u10", "c": "step", "src": "104年 教育原理與制度 選擇題第7題", "q": "有關直接教學法的說明，下列何者錯誤？", "o": ["提問時要給學生候答時間", "隨時檢核學生的了解程度", "提供給學生示範和練習的經驗", "在課程結束時才說明學習目標或結果"], "a": 3, "e": "直接教學法一開始就要陳述學習目標。"}, {"id": "u10-3", "u": "u10", "c": "prac", "src": "104年 教育原理與制度 選擇題第8題", "q": "方老師教數學，她一週以一個單元為範圍，要學生每天花 20 分鐘做 3~4 題數學題目。方老師的做法，較符合下列何種原理？", "o": ["分散練習", "集中練習", "過度學習", "自主學習"], "a": 0, "e": "練習分散在多個時段，即分散練習（直接教學法的最後步驟：提供分散練習與複習）。"}, {"id": "u10-4", "u": "u10", "c": "ati", "src": "106年 教育原理與制度 選擇題第4題", "q": "李老師發現直接教學法對不同程度學生的學習反映出「性向與處理交互作用」(aptitude treatment interaction)現象。下列何種情形較符合李老師的發現？", "o": ["不同程度學生的學習效果無法確定", "高、中、低程度學生的學習都沒有效果", "高、中、低程度學生的學習出現相同的效果", "對低程度學生的學習有效果，對中、高程度的學習沒有效果"], "a": 3, "e": "ATI 指同一教學法對不同特質學生效果不同；直接教學法對低程度學生較有效。"}, {"id": "u10-5", "u": "u10", "c": "step", "src": "108年第一次 教育原理與制度 選擇題第1題", "q": "李老師在上數學時，先複習、再呈現新的題型，然後講解新題型的解題方法。最後，再出題目讓學生練習解題。李老師運用下列何種教學方法？", "o": ["直接教學", "定錨教學", "啟發式教學", "問題導向學習"], "a": 0, "e": "複習先備知識→呈現新教材→講解示範→練習，為直接教學法流程。"}, {"id": "u10-6", "u": "u10", "c": "set", "src": "108年第一次 教育原理與制度 選擇題第5題", "q": "「眼睛的功能不同於照相機，而耳朵的功能不同於錄音機，視而不見、聽而不聞的例子，常發生在課堂上，如果學生對於老師所提供訊息未加留意，那麼就算聽過也一下子就全忘了。」根據以上敘述，下列何者不是教師進入課堂時應優先考量的教學事項？", "o": ["變化教學情境：使用多媒體吸引學生的注意力", "形成求知心態：針對課程內容，老師提問有趣的問題", "配合學生經驗：從單元中提取學生最關心的問題與學生互動", "提供教材內容：以教材為媒介，老師開始明確地講解教材內容"], "a": 3, "e": "上課之初應先引起注意、建立心向（A、B、C），而非直接講解教材。"}, {"id": "u12-1", "u": "u12", "c": "pos", "src": "100年 教育原理與制度 選擇題第5題", "q": "下列對於校園暴力與衝突事件處理的原則與策略，何者不適當？", "o": ["清楚陳述處理這個衝突事件的立場與原則", "保持沉默、冷處理，降低同學之間的緊張關係", "建立雙方對等的談話，且避免以獎懲來威脅學生", "不讓無關的學生圍觀，且盡量不要當著所有學生的面處理問題"], "a": 1, "e": "衝突事件應立即、明確處理，不宜沉默冷處理。"}, {"id": "u12-2", "u": "u12", "c": "imsg", "src": "101年 教育原理與制度 選擇題第5題", "q": "小華上課時不斷傳紙條，陳老師對他說：「你在上課時傳紙條，會讓同學分心，我也會覺得你不在乎我上課的內容。」陳老師是運用何種技巧？", "o": ["我訊息(I-messages)", "消弱法(extinction)", "價值澄清(value clarification)", "果斷紀律(assertive discipline)"], "a": 0, "e": "描述行為＋影響＋教師感受，即高登（T. Gordon）的我訊息。"}, {"id": "u12-3", "u": "u12", "c": "beh", "src": "102年 教育原理與制度 選擇題第1題", "q": "周老師先分析學生的先前經驗及背景後，再設定班規，而後制定適當的獎懲標準。周老師的班級經營屬於哪一取向的做法？", "o": ["行為主義", "心理分析", "人本主義", "現實治療"], "a": 0, "e": "以明確規則與獎懲（增強、懲罰）管理行為，屬行為主義取向。"}, {"id": "u12-4", "u": "u12", "c": "kou", "src": "103年 教育原理與制度 選擇題第4題", "q": "小平上課時對老師講話不禮貌，老師很生氣地斥責他，並批評他沒有家教。班上其他同學聽了以後，對老師心生反感，很同情小平的境遇。下列何者最能描述此一現象？", "o": ["漣漪效應(ripple effect)", "團體後效(group contingency)", "比馬龍效應(Pygmalion effect)", "普墨克原則(Premack principle)"], "a": 0, "e": "庫寧（J. Kounin）：教師處理個別學生的方式會影響其他學生，嚴厲的處理易產生負面漣漪。"}, {"id": "u12-5", "u": "u12", "c": "beh", "src": "103年 教育原理與制度 選擇題第9題", "q": "王老師一開學就與學生討論班規並公告，她一再重複且明確地指導學生正確的行為，例如：「小強，你必須先舉手，才能發言喔！」語氣堅定、沒有敵意。這是應用哪一種理論的班級經營？", "o": ["社會學習", "多元智慧", "人本主義", "果斷紀律"], "a": 3, "e": "坎特（L. & M. Canter）果斷紀律：明確規則、堅定且不帶敵意地要求。"}, {"id": "u12-6", "u": "u12", "c": "env", "src": "103年 教育原理與制度 選擇題第17題", "q": "黃老師費心設計多元化的教學方法，使學生能主動融入並且參與教學歷程，目的是引起更多的學習興趣與動機。她的教學領導屬於下列哪一種班級經營的方式？", "o": ["注重團體規範的方式", "注重個人情意的方式", "強調教師主導的方式", "強調理性價值的方式"], "a": 1, "e": "著重學生興趣、動機與主動參與，屬注重個人情意的方式。"}, {"id": "u12-7", "u": "u12", "c": "env", "src": "110年 學習者發展與適性輔導 選擇題第6題", "q": "下列何種班級情境佈置對學生的學習最有助益？", "o": ["定期更換節慶活動圖片或照片，以營造歡樂氛圍", "大量張貼優秀學生的學習單或作品，以展現教學成效", "配合課程張貼每位學生的學習作業，以收相互學習之效", "張貼各式各樣標語或行為準則，以規訓學童不良舉措或品行"], "a": 2, "e": "佈置應配合課程、人人有機會展示，促進相互學習。"}, {"id": "u12-8", "u": "u12", "c": "env", "src": "110年 學習者發展與適性輔導 選擇題第11題", "q": "下列哪些做法較可能提升班級的合作氣氛？<br>甲、詳列學習班規，以規範不願意參與合作學習的學生<br>乙、建立班級共同的目標，促使學生為共同目標而努力<br>丙、如果學生表現關心班級事務，立即給予獎賞和鼓勵<br>丁、鼓勵高、低成就的學生個別學習，以進行適性輔導", "o": ["甲乙", "甲丁", "乙丙", "丙丁"], "a": 2, "e": "共同目標與增強利社會行為可提升合作氣氛。"}, {"id": "u12-9", "u": "u12", "c": "kou", "src": "110年 學習者發展與適性輔導 選擇題第19題", "q": "採用低調班級經營(low-profile classroom management)策略來處理學生的不當行為時，老師可以運用的技巧包括：預測(anticipation)、轉向(deflection)、回應(reaction)。當張老師要全班開始做數學習作的練習題時，他注意到曉方沒有翻開習作本，而且臉上出現不耐煩的表情。張老師走近曉方，對她說：「曉方，現在應該要完成第 15 頁的練習題。」上述情境中，他依序採用了哪些低調班級經營的技巧？", "o": ["預測、回應", "預測、轉向", "轉向、回應", "回應、轉向"], "a": 1, "e": "察覺不耐煩表情（預測問題將發生）→走近並引導回到任務（轉向），尚未出現需「回應」的不當行為。"}, {"id": "u12-10", "u": "u12", "c": "parent", "src": "111年 學習者發展與適性輔導 選擇題第6題", "q": "當家長向教師抱怨功課太多時，教師以下列何種方式處理較為適當？", "o": ["努力說服家長，強調自己功課出得多，是為了學生成績著想", "了解原因並說明用意，待了解其他學生狀況後，再評估調整", "利用家長日，讓全班家長充分討論，再表決是否減少功課量", "因為家長已反映意見，擔心其向校方申訴，最好減少功課量"], "a": 1, "e": "親師溝通宜先了解原因、說明用意，再綜合評估調整。"}, {"id": "u12-11", "u": "u12", "c": "dre", "src": "111年 學習者發展與適性輔導 選擇題第14題", "q": "關於「鼓勵」(encourage)與「讚賞」(praise)的運用，下列何者正確？<br>甲、鼓勵通常只能用在兒童表現不佳的時候<br>乙、讚賞是一種隨時隨地可以運用的方法<br>丙、鼓勵著重兒童努力的過程而不論其表現<br>丁、讚賞是一種有條件式接納兒童的作為", "o": ["甲乙", "甲丁", "乙丙", "丙丁"], "a": 3, "e": "鼓勵重過程、隨時可用；讚賞針對結果表現，屬有條件接納。"}, {"id": "u12-12", "u": "u12", "c": "kou", "src": "111年 學習者發展與適性輔導 選擇題第16題", "q": "課堂活動的銜接或轉換(transition)如果沒有妥善控制，可能會浪費時間，並容易出現學生失序的行為。下列哪一種作法較難順暢地進行課堂活動轉換？", "o": ["給予學生語文提示，要求學生重述後再轉換", "建立課堂活動慣例，讓學生熟悉活動轉換流程", "控制轉換時間，在活動時間結束時就立刻轉換", "以非語文信號集中學生注意力，說明活動轉換流程"], "a": 2, "e": "未事先預告就立即轉換，學生來不及準備，轉換較不順暢。"}, {"id": "u12-13", "u": "u12", "c": "kou", "src": "111年 學習者發展與適性輔導 選擇題第23題", "q": "張老師向全班說明接下來的時間要同學各自做習作練習題，他注意到小方傳一張便利貼給小潔。張老師一邊繼續說明一邊走向小潔，不動聲色地拿走便利貼。此屬於下列何種班級經營技巧的應用？", "o": ["全面掌控(withitness)", "團體聚焦(group focus)", "同時進行多項活動(overlapping)", "動作管理(movement management)"], "a": 0, "e": "（依公告答案）教師察覺班上一舉一動並及時、低調處理，展現庫寧的全面掌控。"}, {"id": "u12-14", "u": "u12", "c": "env", "src": "112年 學習者發展與適性輔導 選擇題第13題", "q": "教師應依據學生不同的需求與情境來安排座位。下列何種座位安排方式較為不妥？", "o": ["為增加學生互動機會與提升教學效果，將桌椅排成ㄇ字型", "為激勵學生更加精進，按照成績高低依序安排全班的座位", "運用匿名方式了解學生的人際關係，作為安排座位的參考", "為維護其他同學的受教權，把嚴重違反紀律的學生暫時安排在教室角落"], "a": 1, "e": "依成績排座位有標籤化、不公平之虞。"}, {"id": "u12-15", "u": "u12", "c": "dre", "src": "112年 學習者發展與適性輔導 選擇題第18題", "q": "小揚在教室奔跑時不小心把同學的水杯打翻了，以下老師的作法何者符合「邏輯後果」的管教原則？", "o": ["要求小揚寫班規一遍", "要求小揚上台唱歌娛樂同學", "要求小揚反省並檢討自己的錯誤之處", "要求小揚把地板拖乾並且向同學道歉"], "a": 3, "e": "邏輯後果須與行為直接相關、合理且尊重——弄濕就拖乾並道歉。"}, {"id": "u12-16", "u": "u12", "c": "pos", "src": "113年 學習者發展與適性輔導 選擇題第7題", "q": "六年級的小志常故意「為反對而反對」，在課堂上與任課老師起衝突，導師也收到不少學校師生的投訴。導師可以採用下列哪些正向管教的措施？<br>甲、要求小志對任課老師口頭道歉<br>乙、理解小志和老師衝突的背後原因<br>丙、討論和老師持續發生衝突的可能後果<br>丁、當小志和老師理性溝通時，給予稱讚", "o": ["甲乙丙", "甲乙丁", "乙丙丁", "甲丙丁"], "a": 2, "e": "正向管教重理解原因、討論後果與增強正向行為，而非強制要求。"}, {"id": "u12-17", "u": "u12", "c": "dre", "src": "113年 學習者發展與適性輔導 選擇題第10題", "q": "根據阿德勒學派的觀點，下列何者是德萊克斯(R. Dreikurs)認為兒童不當行為的可能原因？", "o": ["低自我控制", "偏差同儕影響", "錯誤的行為目標", "社會連結不完整"], "a": 2, "e": "德瑞克斯：不當行為源於錯誤目標（尋求注意、權力、報復、顯示無能）。"}, {"id": "u12-18", "u": "u12", "c": "kou", "src": "113年 學習者發展與適性輔導 選擇題第22題", "q": "林老師因為小強上課時頻頻與鄰座的小泰講話，因此叫兩人站立反省，讓其他同學引以為戒。上述現象與下列何種效應最相關？", "o": ["月暈效應", "漣漪效應", "馬太效應", "蝴蝶效應"], "a": 1, "e": "處理個別學生以影響全班（引以為戒），為漣漪效應。"}, {"id": "u12-19", "u": "u12", "c": "dre", "src": "114年 學習者發展與適性輔導 選擇題第9題", "q": "小傑的座位過於髒亂，經老師指正後便大聲頂嘴：「為什麼每次都要聽你的？」根據阿德勒(A. Adler)學派的理論，小傑的行為目標較屬於下列何者？", "o": ["爭取權力", "獲得注意", "尋求報復", "顯現無能"], "a": 0, "e": "挑戰教師權威、拒絕服從，屬爭取權力。"}, {"id": "u12-20", "u": "u12", "c": "dre", "src": "114年 學習者發展與適性輔導 選擇題第11題", "q": "下列何者較符合德瑞克斯(R. Dreikurs)的邏輯後果(logical consequence)？", "o": ["忘記寫回家作業，放學後被留下來愛校服務", "考前一天臨時抱佛腳熬夜唸書，結果沒考好", "午餐時嬉戲打翻湯，老師要求把地板擦乾淨", "午餐時去打球沒吃飯，下午肚子餓沒東西吃"], "a": 2, "e": "(C)由他人安排、與行為相關的後果；(B)(D)為自然後果；(A)與行為無關。"}, {"id": "u12-21", "u": "u12", "c": "parent", "src": "114年 學習者發展與適性輔導 選擇題第18題", "q": "小達最近作業經常缺交，老師欲以三明治溝通法與家長溝通此事。以下哪一種對話方式較符合？", "o": ["「您把小達教得很好，平時熱心助人，但他最近作業經常缺交，再不注意可能就跟不上進度。」", "「小達雖然很聰明，但他最近經常沒交作業。輔導老師說能幫忙此事，您是否同意我請輔導老師協助小達？」", "「小達最近作業時常未交，可能與他在家中的作息有關，我知道您很關心他的學習，我需要您一起幫忙改善他的作息。」", "「您把小達教得很好，平時熱心助人，但他最近作業經常缺交，請您協助了解他的學習困難，有您的支持他定能做得更好。」"], "a": 3, "e": "三明治：正向肯定→問題／請求→正向鼓勵作結。"}, {"id": "u12-22", "u": "u12", "c": "imsg", "src": "115年 學習者發展與適性輔導 選擇題第7題", "q": "小立桌上的顏料被同學打翻了，下列哪個句子較符合「我訊息」(I-message)的溝通方式？", "o": ["「事情既然已經發生了，我希望你下次不要再犯。」", "「我知道你不是故意打翻的，我不會生你的氣啦。」", "「顏料被你打翻我很生氣，希望你能幫忙清乾淨。」", "「我的書桌被你弄髒了，我想你應該非常緊張吧。」"], "a": 2, "e": "包含行為、自己的感受與期望。"}]};
+const ESSAYS = [{"id": "eu2-1", "u": "u2", "src": "110年 學習者發展與適性輔導 問答題第1題", "ctx": null, "q": "比較維高斯基(L. Vygotsky)與皮亞傑(J. Piaget)的理論觀點在認知發展階段、認知成長機制，以及影響認知發展因素上的差異。(10 分)<br>將下列表格繪製於答案卷，並於答案卷的表格內作答。<table class='t'><tr><th>理論觀點</th><th>維高斯基</th><th>皮亞傑</th></tr><tr><td>認知發展階段</td><td></td><td></td></tr><tr><td>認知成長機制</td><td></td><td></td></tr><tr><td>影響認知發展因素</td><td></td><td></td></tr></table>", "a": "<table class='t'><tr><th>理論觀點</th><th>維高斯基</th><th>皮亞傑</th></tr>\n<tr><td>認知發展階段</td><td>不主張普遍、固定的發展階段；發展是連續的，因文化與社會經驗而異。（語言與思考的關係則有社會語言→私語（自我中心語言）→內在語言的歷程）</td><td>提出四個普遍、順序固定、不可跳躍的階段：感覺動作期（0–2）、前運思期（2–7）、具體運思期（7–11）、形式運思期（11 以上），各階段思考有質的差異。</td></tr>\n<tr><td>認知成長機制</td><td>社會互動與內化：在可能發展區（ZPD）內，經成人或能力較佳同儕的引導（鷹架），把人際間（社會層次）的心智活動內化為個人內在（心理層次）的能力；語言是思考的中介工具。</td><td>個體主動建構：透過基模的同化與調適來適應環境；認知失衡時促使個體追求平衡（平衡作用），基模因而重組、發展。</td></tr>\n<tr><td>影響認知發展因素</td><td>社會文化、語言與文化工具、成人與同儕的互動及教學；主張「學習可以引導發展」。</td><td>成熟、經驗（物理經驗與邏輯數學經驗）、社會傳遞、平衡作用；主張「發展先於學習」，教學須配合發展階段。</td></tr></table>", "g": ["畫出題目的三列表格，每格先寫關鍵術語再補一句說明。", "認知發展階段：皮亞傑＝四個普遍、固定順序的階段；維高斯基＝不主張固定階段。", "成長機制：同化、調適、平衡 vs. 社會互動、可能發展區（ZPD）、內化。", "影響因素：成熟、經驗、社會傳遞、平衡 vs. 社會文化、語言工具；「發展先於學習」vs.「學習引導發展」。"]}, {"id": "eu2-2", "u": "u2", "src": "115年 學習者發展與適性輔導 綜合題第4題", "ctx": "國小三年級的小威被診斷為注意力不足過動症(ADHD)。上課時，他常常無法好好的坐在位置上，且容易被窗外的聲音干擾。王老師發現，小威對於重複性高或需長時間專注的任務(如國語生字抄寫)，常表現出挫折及排斥，小威常發脾氣說：「這好無聊，我不想寫了！反正我永遠寫不完！」此外，對於較複雜的指令，他常無法記住，或是遺漏細節，日常生活也常忘東忘西。<br>　　然而，在有動手操作或即時回饋的自然課中，小威的表現卻相對積極。所以，小威的問題並非來自不努力，很可能是大腦前額葉皮質(prefrontal cortex, PFC)發展延遲，而影響到他的執行功能與學習動機。", "q": "前額葉皮質負責高階認知功能，包含計畫、抑制控制、工作記憶及認知彈性增加。說明小威哪兩項高階認知功能可能受損，並從文本中各舉出兩項佐證的行為特徵。(4 分)", "a": "<ol><li><b>抑制控制</b>受損：①上課常無法好好坐在位置上；②容易被窗外聲音干擾而分心（亦可舉：遇到挫折就發脾氣、說不想寫）。</li>\n<li><b>工作記憶</b>受損：①較複雜的指令常無法記住；②常遺漏細節、日常生活忘東忘西。</li></ol>\n<p class=\"tip\">另可答「計畫能力」：面對長時間任務無法規劃，覺得「永遠寫不完」。</p>", "g": ["從計畫、抑制控制、工作記憶、認知彈性中挑兩項最有證據的。", "每項功能各引用文本中兩個行為，盡量照抄原句（如「無法好好坐在位置上」）。", "共 4 分，寫到功能名稱＋兩個佐證即可，不必長篇。"]}, {"id": "eu5-1", "u": "u5", "src": "105年 教育原理與制度 問答題第4題", "ctx": null, "q": "某國小張貼了如下的一則公告：<div class='box'>恭喜 10 月份閱讀小博士、小碩士、小學士！<br>10 月份閱讀小博士、小碩士、小學士得獎小朋友名單如下表。得獎小朋友將於 11 月 7 日(週二)學生晨會公開頒獎，並與校長合影。閱讀小博士另致贈優良兒童圖書乙本，以資鼓勵。<br>一、閱讀小博士合計 10 位小朋友(名單略)<br>二、閱讀小碩士合計 15 位小朋友(名單略)<br>三、閱讀小學士合計 31 位小朋友(名單略)</div>試說明社會學習論的基本觀點(4 分)，並用此理論舉出三項論點，說明學校公告閱讀小學士、小碩士、小博士的做法，對該校學生的教育意義(6 分)。", "a": "<p><b>基本觀點：</b>班度拉認為學習不一定要親身經驗增強，可經由<b>觀察楷模</b>的行為及其後果而習得（觀察學習），歷程包括注意、保持、再生、動機；行為後果可透過<b>替代增強／替代懲罰</b>影響觀察者；個人、行為、環境三者<b>交互決定</b>；並重視自我效能與自我調節。</p>\n<p><b>教育意義：</b></p><ol><li><b>楷模示範：</b>公告及公開頒獎讓得獎者成為同儕楷模，引起其他學生注意並模仿閱讀行為。</li>\n<li><b>替代增強：</b>學生看到得獎者受表揚、與校長合影、獲贈圖書，預期自己閱讀也會得到正向後果，提高閱讀動機。</li>\n<li><b>提升自我效能：</b>分學士、碩士、博士三級，得獎人數多、標準可達成，學生看到能力相近的同儕成功（替代經驗），會相信「我也做得到」。</li>\n<li><b>自我調節：</b>分級標準提供學生自訂目標、自我監控與自我增強的依據，逐步向更高等級邁進。</li></ol>", "g": ["第一段寫基本觀點（4 分）：觀察學習四歷程、替代增強、交互決定論、自我效能，至少點出兩三個術語。", "第二段三個論點，每點都要連到公告的具體做法：公開頒獎、與校長合影、分學士／碩士／博士三級。", "可加一句提醒：未得獎學生也可能受替代懲罰影響。"]}, {"id": "eu5-2", "u": "u5", "src": "108年第一次 教育原理與制度 問答題第1題", "ctx": null, "q": "小華突然在上課中打嗝，引起全班哄堂大笑，王老師給他一個溫柔的眼神與和善的笑容回應。小華之後便頻頻發出打嗝聲。王老師每次都立即提醒小華要注意禮儀，下課也關心他是否不舒服。然而，小華未能體會到老師的用意。王老師決定停止回應小華的搗亂行為，但兩週過了，仍徒勞無功。試依此例回答下列問題：<br>(1)試舉兩項行為學習理論的原理，分析王老師與小華的互動歷程。(6 分)<br>(2)提出兩個具體建議，幫助王老師改善小華的現況。(4 分)", "a": "<p>(1)</p><ol><li><b>正增強：</b>打嗝後得到全班大笑、老師溫柔眼神與笑容、每次提醒及下課關心，這些社會性注意都成為增強物，使打嗝行為次數增加。</li>\n<li><b>消弱（及其限制）：</b>老師停止回應是消弱策略，但①同學的笑聲仍持續增強，增強來源未完全移除；②消弱初期常出現「消弱爆發」，行為反而更頻繁；③先前反應不一致，類似間歇增強，使行為更抗拒消弱，因此兩週仍無效。</li></ol>\n<p>(2)</p><ol><li>全班一致不予理會：運用團體後效，全班在小華打嗝時不笑，即可獲得團體獎勵，切斷同儕注意這個增強來源。</li>\n<li>區別增強：小華專心上課、未故意打嗝一段時間時，立即給予注意與稱讚（DRO／DRA），讓他以適當行為獲得注意；並堅持消弱、度過消弱爆發期。</li>\n<li>也可私下與小華晤談、訂定行為契約，或對持續干擾採用反應代價。</li></ol>", "g": ["(1) 指出兩個原理並說清楚「誰給了什麼後果」：全班笑聲、老師眼神與提醒＝正增強（注意）。", "再解釋為何停止回應卻無效：同學仍在增強、消弱爆發、先前不一致像間歇增強。", "(2) 建議要具體可執行，例如全班一起忽視（團體後效）、區別增強專心行為。"]}, {"id": "eu5-3", "u": "u5", "src": "108年第二次 教育原理與制度 問答題第4題", "ctx": null, "q": "林老師採用四人一組的異質能力分組，讓學生玩林老師設計的數學桌遊。遊戲中小組的每個人依序輪流進行活動，累積個人分數，小組總分達 250 分就算闖關成功。小組成員在遊戲中可以互助合作，但輪到的人必須自己進行遊戲的動作，其他成員只能提供口頭意見。在過程中，老師發現高能力的學生會找到很多得分的方法，其他組員很快地也會使用同樣的方法；但老師會懲罰取巧的學生，使其他組員不敢再用。最後全部小組都闖關成功，總分最高的小組可以得到獎品。<br>(1)試在上述學習活動中，找出兩個吻合行為主義學習理論的元素。(3 分)<br>(2)試在上述學習活動中，找出兩個吻合社會學習理論的元素。(3 分)<br>(3)林老師的設計運用了「合作學習」的哪些原理原則？試舉出兩項。(4 分)", "a": "<p>(1) 行為主義：①累積分數、闖關成功、總分最高小組得獎品——<b>正增強</b>（分數如同代幣）；②老師<b>懲罰</b>取巧的學生，以減少不當行為。</p>\n<p>(2) 社會學習：①其他組員觀察高能力同學的得分方法並加以採用——<b>觀察學習／楷模模仿</b>；②看到取巧者被懲罰而不敢再用——<b>替代懲罰</b>。</p>\n<p>(3) 合作學習：①<b>異質分組</b>；②<b>積極互賴</b>：小組共同目標（總分 250 分）；③<b>個人績效責任</b>：輪到者須自己操作，並累積個人分數；④<b>面對面助長性互動</b>：成員可互助、提供口頭意見；⑤<b>團體獎勵</b>。（任舉兩項）</p>", "g": ["三小題分開作答，每個元素都從情境中找一句對應。", "(1) 行為主義：分數／獎品（正增強）、懲罰取巧者。(2) 社會學習：模仿高能力者（觀察學習）、看到取巧者被罰（替代懲罰）。", "(3) 合作學習五要素挑兩項：積極互賴、個人績效、面對面互動、異質分組、團體獎勵。"]}, {"id": "eu5-4", "u": "u5", "src": "110年 學習者發展與適性輔導 綜合題第7題", "ctx": "五年級的課堂上，初次帶班的陳老師在班規中已明訂回答問題前要先舉手，但小高沒有舉手便搶答，老師仍幫他加分，一開始其他同學表情略微不開心，但還是安靜地放下手。第二次，同學開始出言抱怨「啊不就好棒棒」、「吼！一直插嘴餒」。第三次，同學大聲表達「吵死了」、「小心我打你」，小高立刻向老師告狀「老師，愷愷說要打我」。聽小高這麼一說，愷愷很不高興地從座位站起身，舉起椅子衝向小高，教室頓時陷入一片混亂。", "q": "陳老師雖明訂規則，卻默許小高違反規則並加分。從行為主義的觀點，老師的行為有何不妥之處？你認為當小高第一次出現違規搶答的情況時，老師宜採取何種做法？寫出兩項。(6 分)", "a": "<p><b>不妥之處：</b>①小高違規搶答卻被加分，等於<b>正增強不當行為</b>，使搶答越來越頻繁；②守規舉手的同學未獲增強，守規行為反被消弱；③其他同學觀察到違規可得分（替代增強），規則與後果不一致，削弱規則效力並引發不滿與衝突。</p>\n<p><b>宜採做法：</b></p><ol><li>不給加分、不採用他的搶答（<b>消弱</b>），並以眼神、手勢等非語言線索<b>提示</b>舉手規則。</li>\n<li>立即點名並稱讚有舉手的同學（<b>區別增強</b>），當小高改為舉手時馬上點他並給予增強。</li>\n<li>重申規則與一致的後果；若再犯可採<b>反應代價</b>（扣點）。</li></ol>", "g": ["先寫不妥之處：老師把加分給了違規行為，等於正增強搶答；守規的同學反而沒被增強。", "再寫兩個「第一次發生時」的做法：一個處理小高（不採用、提示規則），一個增強正確行為（點有舉手的人）。", "用術語標示：消弱、區別增強、提示、反應代價。"]}, {"id": "eu5-5", "u": "u5", "src": "112年 學習者發展與適性輔導 問答題第3題", "ctx": null, "q": "某地區經常為限水問題所苦，因此老師帶領學生思考臺灣面臨的缺水困境。學童分析水資源浪費成因後，決定從省水的角度切入。老師首先用影像介紹國外學童的創意省水裝置發明。他們一開始覺得有些困難，但是老師鼓勵他們：｢別人做得到，你們也做得到。」經過討論，他們發明了一個有趣的省水裝置。此外，對於校長讓他們在朝會上分享設計的邀請，這群學童感到十分興奮。他們製作了各種海報傳遞省水理念，同學開始叫他們省水達人。讓他們深切體會愛家鄉是每個人都可以實踐的具體行動。<br>根據班杜拉(A. Bandura)的理論，影響自我效能的來源有四。請分析參與上述活動可能如何影響學童們的自我效能(8 分)，並指出其中哪個要素最關鍵(2 分)？", "a": "<ol><li><b>過去成就表現（精熟經驗）：</b>學童經討論後成功發明省水裝置、製作海報，親身成功經驗提升「我能做到」的信念。</li>\n<li><b>替代經驗：</b>觀看國外學童發明的影像，看到年齡相近的楷模成功，推論自己也能做到。</li>\n<li><b>言語說服：</b>老師鼓勵「別人做得到，你們也做得到」、校長邀請朝會分享、同學稱他們「省水達人」，都是正向的社會說服。</li>\n<li><b>生理與情緒狀態：</b>起初覺得困難（負向情緒）會降低效能；後來受邀分享而感到興奮，正向情緒提升效能。</li></ol>\n<p><b>最關鍵：</b>過去成就表現（精熟經驗），因為親身成功是最直接、可靠的能力證據，對自我效能影響最大、最持久。</p>", "g": ["依四個來源逐一作答，每個來源先寫名稱，再引用情境句子：", "過去成就（發明成功）、替代經驗（看國外學童影片）、言語說服（老師鼓勵、同學稱省水達人）、生理情緒（起初困難、後來興奮）。", "最後一句指出「過去成就表現最關鍵」並說明理由。"]}, {"id": "eu5-6", "u": "u5", "src": "112年 學習者發展與適性輔導 綜合題第4題", "ctx": "為了提高學生學習意願，陳老師與學生有個約定，若學生單元小考成績超過 90 分，就可以免做回家作業一次。下課時，婷婷說：「我週末一定要努力讀書，成為全班拿最多免做功課獎勵的人。」凱凱說：「老師的標準太高，我一定考不到，我乾脆不要讀了。」阿澤說：「大家好像都很喜歡免做功課的獎勵，但我覺得寫回家作業可以讓我更了解學習的內容。」<br>　　上述約定試行一陣子後，陳老師發現有些學生表現有進步，但是有些學生的成績仍然不理想。因此陳老師又增加第二個約定，小考成績未達 70 分的學生就要罰寫。陳老師心想，下次全班的成績應該都會進步了吧！", "q": "試評述陳老師與學生的約定會對學生的學習動機和學習成效產生哪些負面影響，寫出三點並詳加說明。(6 分)", "a": "<ol><li><b>削弱內在動機（過度辯證效應）：</b>以「免作業」作為外在獎勵，學習目的變成拿獎勵（如婷婷）；原本重視作業價值的學生（阿澤）其內在動機也可能被削弱。</li>\n<li><b>標準單一偏高，低成就者放棄：</b>90 分的固定標準使部分學生預期無法達成（如凱凱），期望低而放棄學習，甚至形成習得無助。</li>\n<li><b>作業與罰寫被視為懲罰：</b>把作業當成可「免除」的負擔，罰寫又使學習與厭惡情緒連結（古典制約），降低對學科與作業的興趣。</li>\n<li><b>懲罰只壓抑、未教導：</b>罰寫無法教給學生有效的學習策略，成績不一定進步，且可能引發焦慮、逃避或作弊；也助長表現目標與同儕比較。（任選三點）</li></ol>", "g": ["寫三點，每點用「理論概念＋情境人物」的格式。", "可用角度：外在獎勵削弱內在動機（阿澤、婷婷）、標準太高使低成就者放棄（凱凱）、罰寫的副作用（厭惡、焦慮、沒教策略）。"]}, {"id": "eu5-7", "u": "u5", "src": "113年 學習者發展與適性輔導 綜合題第4題", "ctx": "小善平時沒有天天洗澡，導致身上有異味，他吃完午餐常用衣服擦手，也習慣用袖子擦鼻涕，他的教室座位地板上有很多垃圾，因此同學不喜歡跟小善在一起。陳老師為了要改善小善的衛生習慣，設計了一個集點活動來幫助他達成目標。他給小善一張記錄表，跟他共同訂定要改進的四個行為，每項只要當天完全做到，小善就可以自己打一個○，累積 10 個○就能換一個小善喜歡的獎品。以下是小善交回的表格，從表格看起來小善每天都有畫○，但一段時間後，小善的衛生習慣卻沒有明顯改善。<table class=\"t\"><tr><th>目標行為</th><th>5/6</th><th>5/7</th><th>5/8</th><th>5/9</th><th>5/10</th><th>5/13</th><th>5/14</th><th>5/15</th><th>5/16</th><th>5/17</th></tr>\n<tr><td>（星期）</td><td>(一)</td><td>(二)</td><td>(三)</td><td>(四)</td><td>(五)</td><td>(一)</td><td>(二)</td><td>(三)</td><td>(四)</td><td>(五)</td></tr>\n<tr><td>每天洗澡換乾淨衣服</td><td>○</td><td>○</td><td>○</td><td>○</td><td>○</td><td>○</td><td>○</td><td>○</td><td>○</td><td>○</td></tr>\n<tr><td>維持座位乾淨</td><td>○</td><td>○</td><td>○</td><td>○</td><td>○</td><td>○</td><td>○</td><td>○</td><td>○</td><td>○</td></tr>\n<tr><td>不要把衣服當抹布</td><td>○</td><td></td><td>○</td><td></td><td>○</td><td></td><td>○</td><td></td><td>○</td><td></td></tr>\n<tr><td>每次擤鼻涕都使用衛生紙</td><td></td><td></td><td>○</td><td></td><td></td><td></td><td></td><td>○</td><td></td><td></td></tr></table>", "q": "針對表格中「目標行為的設定與敘寫」，提出兩個導致小善行為改變計畫失敗的可能原因，並針對這些原因提出相應的改善作法。(6 分)", "a": "<ol><li><b>目標行為不具體、無法觀察測量：</b>如「維持座位乾淨」何謂乾淨不明確，「每天洗澡換乾淨衣服」老師在校無法觀察，小善就能每天自行畫○。<br>→改為具體、可觀察、有標準的敘寫，如「午餐後與放學前，座位地板上沒有垃圾」，並由老師或同儕確認。</li>\n<li><b>以否定句敘寫：</b>「不要把衣服當抹布」只說不能做什麼，未說明應做的替代行為。<br>→改為正向敘寫，如「吃完午餐用紙巾擦手」、「擤鼻涕時使用衛生紙」。</li>\n<li><b>一次設定太多、標準過高：</b>四項同時進行且要「完全做到」，未依行為塑造原則循序漸進。<br>→先選一、二項最重要的行為，分成小步驟，達成後再逐步增加。</li>\n<li><b>完全由小善自評：</b>缺乏客觀監控，紀錄可能不實。→加入教師檢核，並教導正確的自我監控。（任選兩點）</li></ol>", "g": ["用三把尺檢查表格中的目標行為：具體可觀察嗎？正向敘寫嗎？難度是否循序漸進？", "每寫一個原因，就配一個改善作法，並改寫出一個新的目標行為示例。", "也可提到「由小善自評自畫○」缺乏客觀監控。"]}, {"id": "eu5-8", "u": "u5", "src": "113年 學習者發展與適性輔導 綜合題第5題", "ctx": "小善平時沒有天天洗澡，導致身上有異味，他吃完午餐常用衣服擦手，也習慣用袖子擦鼻涕，他的教室座位地板上有很多垃圾，因此同學不喜歡跟小善在一起。陳老師為了要改善小善的衛生習慣，設計了一個集點活動來幫助他達成目標。他給小善一張記錄表，跟他共同訂定要改進的四個行為，每項只要當天完全做到，小善就可以自己打一個○，累積 10 個○就能換一個小善喜歡的獎品。以下是小善交回的表格，從表格看起來小善每天都有畫○，但一段時間後，小善的衛生習慣卻沒有明顯改善。<table class=\"t\"><tr><th>目標行為</th><th>5/6</th><th>5/7</th><th>5/8</th><th>5/9</th><th>5/10</th><th>5/13</th><th>5/14</th><th>5/15</th><th>5/16</th><th>5/17</th></tr>\n<tr><td>（星期）</td><td>(一)</td><td>(二)</td><td>(三)</td><td>(四)</td><td>(五)</td><td>(一)</td><td>(二)</td><td>(三)</td><td>(四)</td><td>(五)</td></tr>\n<tr><td>每天洗澡換乾淨衣服</td><td>○</td><td>○</td><td>○</td><td>○</td><td>○</td><td>○</td><td>○</td><td>○</td><td>○</td><td>○</td></tr>\n<tr><td>維持座位乾淨</td><td>○</td><td>○</td><td>○</td><td>○</td><td>○</td><td>○</td><td>○</td><td>○</td><td>○</td><td>○</td></tr>\n<tr><td>不要把衣服當抹布</td><td>○</td><td></td><td>○</td><td></td><td>○</td><td></td><td>○</td><td></td><td>○</td><td></td></tr>\n<tr><td>每次擤鼻涕都使用衛生紙</td><td></td><td></td><td>○</td><td></td><td></td><td></td><td></td><td>○</td><td></td><td></td></tr></table>", "q": "（承上題）老師希望藉由同儕的力量來幫助小善的衛生習慣，提出一項作法並說明所依據的理論。(4 分)", "a": "<p><b>作法一（社會學習論）：</b>安排衛生習慣良好、與小善關係友善的同學坐在附近作為楷模，示範用衛生紙、清理座位等行為；老師公開稱讚楷模，讓小善觀察到正確行為會受肯定（替代增強），進而模仿。</p>\n<p><b>作法二（行為主義：團體後效）：</b>以小組為單位訂定整潔目標，全組（含小善）都達成即可獲得獎勵；同儕會提醒、協助並讚美小善，同儕讚美成為社會性增強物。（擇一作答）</p>", "g": ["答題三要素：一個具體作法＋理論名稱＋理論如何解釋這個作法。", "常用理論：社會學習論（同儕楷模、替代增強）或行為主義的團體後效。"]}, {"id": "eu5-9", "u": "u5", "src": "114年 學習者發展與適性輔導 綜合題第6題", "ctx": "小千性格強勢，小皓個性內向不擅長拒絕，因此常被小千要求幫忙跑腿。後來小千越來越過分，常用凶狠語氣對小皓說話，還取笑小皓、搶他的零食，甚至破壞小皓的作業本害他被老師責備。校外教學時，小千要求小皓買紀念品給他，並威脅他說：「如果你不買給我，我就告訴老師你平常都會偷帶零食。」小皓因為害怕只好買給小千。老師深入了解後，發現很多同學都跟小皓有類似的遭遇。", "q": "根據行為主義的原理，分別說明小千和小皓學會上述互動行為的歷程。(4 分)<table class='t'><tr><th>人物</th><th>以原理解釋行為的習得歷程</th></tr><tr><td>小千</td><td></td></tr><tr><td>小皓</td><td></td></tr></table>", "a": "<table class='t'><tr><th>人物</th><th>以原理解釋行為的習得歷程</th></tr>\n<tr><td>小千</td><td><b>正增強（操作制約）：</b>要求跑腿、兇小皓、威脅後都能得到小皓順從、零食與紀念品，且未受懲罰，行為不斷被增強而逐步升級（越來越過分）。</td></tr>\n<tr><td>小皓</td><td><b>負增強（逃避制約）：</b>順從小千、買紀念品可以避免被兇、被告狀等嫌惡後果，順從行為因而增加；亦可說明小千的威脅與害怕情緒經<b>古典制約</b>連結，使小皓見到小千就恐懼而不敢拒絕。</td></tr></table>", "g": ["分兩個人物作答，各寫一條「行為→後果→行為增加」的鏈。", "小千：要求或威脅成功得到好處＝正增強。小皓：順從可避免被兇或被告狀＝負增強；也可補充古典制約的恐懼。"]}, {"id": "eu5-10", "u": "u5", "src": "115年 學習者發展與適性輔導 非選擇題第2題", "ctx": null, "q": "在一次課堂討論中，小凱提出了與多數同學不同的想法。小林立刻回應：「你怎麼會想出這麼蠢的點子？」旁邊兩三位同學立刻附和說：「對啊！你自以為很厲害，但每次都講得很爛！」小凱當下愣住，臉色變得很難看。其他同學見狀也紛紛不敢再表達想法。<br>(1)根據社會學習理論的兩項機制，分別說明上述學習情境中言語攻擊事件對班級學生行為可能產生的影響。(4 分)<br>(2)根據前題的分析，為了促進安全友善的討論環境，提出兩項教師可採取的具體做法。(6 分)", "a": "<p>(1)</p><ol><li><b>觀察學習／模仿（含替代增強）：</b>小林的嘲諷成為楷模，旁邊同學隨即附和；若攻擊未受處理，其他學生會認為言語攻擊可被接受而模仿。</li>\n<li><b>替代懲罰：</b>同學看到小凱提出不同想法就被嘲笑，預期自己發表也會受懲罰，因而不敢表達意見，發表行為被抑制。</li></ol>\n<p>(2)</p><ol><li>立即、適當處理言語攻擊並<b>建立討論規範</b>（尊重、對事不對人），明確說明違反的後果，使攻擊行為不被增強。</li>\n<li>教師<b>示範</b>如何回應不同意見（先複述、再提出理由），並<b>公開肯定</b>勇於提出不同觀點的學生，形成替代增強。</li>\n<li>採用小組討論、「想－配對－分享」或匿名發表等方式，降低公開發表的風險。（任擇兩項）</li></ol>", "g": ["(1) 兩個機制各一段：觀察學習／模仿（附和的同學）、替代懲罰（其他人不敢發言），說明對誰造成什麼行為影響。", "(2) 兩個做法要能對應 (1) 的機制，例如處理攻擊、示範尊重回應、公開肯定發言者。"]}, {"id": "eu5-11", "u": "u5", "src": "115年 學習者發展與適性輔導 綜合題第5題", "ctx": "國小三年級的小威被診斷為注意力不足過動症(ADHD)。上課時，他常常無法好好的坐在位置上，且容易被窗外的聲音干擾。王老師發現，小威對於重複性高或需長時間專注的任務(如國語生字抄寫)，常表現出挫折及排斥，小威常發脾氣說：「這好無聊，我不想寫了！反正我永遠寫不完！」此外，對於較複雜的指令，他常無法記住，或是遺漏細節，日常生活也常忘東忘西。<br>　　然而，在有動手操作或即時回饋的自然課中，小威的表現卻相對積極。所以，小威的問題並非來自不努力，很可能是大腦前額葉皮質(prefrontal cortex, PFC)發展延遲，而影響到他的執行功能與學習動機。", "q": "針對小威對重複性任務的學習動機低落，王老師想運用自我決定論(self-determination theory, SDT)與行為改變技術，分別設計一項具體的教學輔導策略，並詳加說明。(6 分)", "a": "<p><b>自我決定論：</b>滿足三項基本心理需求——①<b>自主</b>：讓小威選擇抄寫的字數順序、工具或方式（如生字卡、字詞遊戲），並說明練習的意義；②<b>勝任</b>：把任務切成小段、設定可達成的目標並即時回饋，讓他感覺「寫得完」；③<b>關係</b>：與同儕合作、教師溫暖支持。</p>\n<p><b>行為改變技術：</b>採用<b>代幣制／普墨克原則</b>：每完成一小段（如 5 個字）即得一點或可進行喜歡的操作活動；配合<b>行為塑造</b>逐步延長專注時間，並以自我監控表記錄進步。</p>", "g": ["兩個策略分開寫：SDT 從自主、勝任、關係中挑一項設計；行為改變技術挑代幣制、普墨克原則或行為塑造。", "每個策略都寫出具體步驟（做什麼、多久、達成後得到什麼），並說明為何能提升動機。"]}, {"id": "eu5-12", "u": "u5", "src": "115年 學習者發展與適性輔導 綜合題第6題", "ctx": "國小五年級的數學課在練習題目時，小宇和同學竊竊私語，互丟紙條，老師提醒過一次，小宇他們安靜了一下。但不到五分鐘，又開始竊笑。老師再次提醒，小宇說：「數學很無聊耶，可以下課了嗎？」全班同學聽到後大笑。小宇看起來很得意，對老師做鬼臉，並更大聲地說：「所以，可以下課了嗎？」。同學聽到後，也附和說：「下課、下課、下課」。", "q": "行為功能分析(functional analysis)是透過行為發生前的前事(antecedent)、行為(behavior)、該行為的後果(consequence)來分析行為功能，了解不當行為背後的目的。請完成下表，並分析小宇的行為功能。(請在作答區內列出 A、B、C、D，並分別寫出對應的答案，共 4 分)<table class='t'><tr><th>前事</th><th>行為</th><th>後果</th><th>行為功能<br>(老師推測學生行為的目的)</th></tr><tr><td>A</td><td>B</td><td>C</td><td>D</td></tr></table>", "a": "<ul><li><b>A 前事：</b>數學課進行獨立練習題（小宇覺得無聊），老師提醒。</li>\n<li><b>B 行為：</b>竊竊私語、互丟紙條、竊笑、說「數學很無聊耶，可以下課了嗎？」、做鬼臉。</li>\n<li><b>C 後果：</b>全班大笑、同學附和喊「下課」，老師中斷教學一再提醒。</li>\n<li><b>D 行為功能：</b>獲得同儕（與老師）的注意，並逃避無聊的數學練習。</li></ul>", "g": ["依 A 前事、B 行為、C 後果、D 功能逐格填寫，盡量引用文本原句。", "功能的常見答案：獲得注意（同儕笑聲）、逃避任務（無聊的練習）；兩者都可寫。"]}, {"id": "eu5-13", "u": "u5", "src": "115年 學習者發展與適性輔導 綜合題第7題", "ctx": "國小五年級的數學課在練習題目時，小宇和同學竊竊私語，互丟紙條，老師提醒過一次，小宇他們安靜了一下。但不到五分鐘，又開始竊笑。老師再次提醒，小宇說：「數學很無聊耶，可以下課了嗎？」全班同學聽到後大笑。小宇看起來很得意，對老師做鬼臉，並更大聲地說：「所以，可以下課了嗎？」。同學聽到後，也附和說：「下課、下課、下課」。", "q": "（承上題）為促進小宇的適當行為，根據上題的行為功能分析結果，針對改變前事與教導新行為各舉一個教師可採取的具體做法。(6 分)", "a": "<p><b>改變前事：</b>調整練習任務，使其不那麼無聊——分段練習、難度適中、加入遊戲或小組競賽、提供題目選擇；並調整座位把小宇與同伴分開，練習前先說明規則與獎勵。</p>\n<p><b>教導新行為：</b>教小宇用適當方式表達需求（舉手說「我需要休息／我不會」、使用休息卡），並給他用正向方式獲得注意的機會（如擔任小老師、上台分享解法）；出現適當行為時立即增強（區別增強替代行為），不當行為則不給予注意。</p>", "g": ["兩個方向各寫一個具體做法：", "改變前事＝調整任務或環境（分段、難度、座位、事前說明）。", "教導新行為＝教他用適當方式達到同樣目的（休息卡、舉手求助），並增強這個新行為。"]}, {"id": "eu8-1", "u": "u8", "src": "112年 學習者發展與適性輔導 問答題第1題", "ctx": null, "q": "王老師在教六年級的柱體與錐體時，發現班上有些孩子已經可以熟練地從展開圖對應到正確的形狀，有些孩子卻無法做到。根據皮亞傑(J. Piaget)的認知發展論，此時期的學童大多在具體運思期階段過渡到形式運思期階段，請針對具體運思期與形式運思期各舉出三個思考特徵(6 分)。試針對王老師班上發展落後學生的特徵，建議兩種可能的教學做法(4 分)。", "a": "<p><b>具體運思期：</b>具保留概念與可逆性；能去集中化，同時考慮多個向度；能分類（類包含）、序列化與遞移推理；但思考限於具體、真實的事物。</p>\n<p><b>形式運思期：</b>能抽象思考；能假設－演繹推理；能命題推理與組合推理（系統控制變因）；具可能性與後設思考。</p>\n<p><b>教學做法（針對仍在具體運思期的學生）：</b></p><ol><li>提供<b>具體操作</b>：讓學生實際剪開、摺合紙盒與立體模型，親手把展開圖組成柱體、錐體。</li>\n<li>依<b>具體→圖像→抽象</b>循序呈現：先實物、再圖片與動畫、最後展開圖，搭配多重表徵。</li>\n<li>安排<b>同儕合作</b>，由已能掌握的同學示範說明（亦可結合維高斯基的鷹架）；或先讓學生預測再操作驗證，引發認知衝突以促進調適。（任擇兩項）</li></ol>", "g": ["先分兩段，各列三個特徵並用術語：具體運思（保留、可逆、分類、序列、遞移），形式運思（假設演繹、命題推理、控制變因、抽象）。", "教學做法要針對「仍停在具體運思期」的學生：具體操作教具、具體→圖像→抽象、同儕示範。"]}, {"id": "eu8-2", "u": "u8", "src": "113年 學習者發展與適性輔導 非選擇題第2題", "ctx": null, "q": "馬老師教「時間單位的換算」時，先詢問已學過的日、時、分、秒等時間單位的關係，再進入正式教學活動：先利用一系列提問引導學生解決問題；再由不同能力學生組成的小組討論解決類似題並進行小組分享；最後由學生獨立解題，教師再給予回饋；回家作業則指定「數學日記」，讓學生紀錄今天討論了什麼、學到什麼、哪裡不懂。<br>(1)請解釋布魯納等學者(Bruner, Ross &amp; Wood, 1976)所提出的鷹架作用，並說明馬老師教學歷程符合鷹架作用之處。(4 分)<br>(2)從馬老師的作法，指出其符合維高思基(L. Vygotsky)理論的二項重要概念或觀點，並說明之。(6 分)", "a": "<p>(1) <b>鷹架作用：</b>學習者在可能發展區內學習時，由成人或能力較佳者提供暫時性的支持（提問、提示、示範、分解任務），並隨學習者能力提升<b>逐步撤除</b>，最後將責任轉移給學習者獨立完成。<br>\n<b>符合之處：</b>先連結舊經驗→以一系列提問引導解題（教師支持最多）→小組討論類似題（改由同儕支持）→學生獨立解題、教師回饋（撤除鷹架），支持由多到少、責任逐步轉移。</p>\n<p>(2)</p><ol><li><b>可能發展區（ZPD）：</b>教師提問與同儕協助，使學生完成原本無法獨立完成的題目，把能力由實際發展層次提升到潛在發展層次。</li>\n<li><b>社會互動與內化：</b>異質小組中能力較佳同儕的協助與討論，使知識由人際間（社會層次）內化到個人（心理層次）。</li>\n<li><b>語言是思考的工具：</b>小組分享與「數學日記」讓學生用語言整理、反思思考歷程（類似私語的自我調節功能）。（任擇兩項）</li></ol>", "g": ["(1) 先定義鷹架三要素：在 ZPD 內、暫時性支持、逐步撤除並轉移責任；再對照馬老師的四個步驟，說明支持如何由多到少。", "(2) 挑兩個維高斯基概念：ZPD、社會互動與內化、語言是思考工具，各連結一個馬老師的作法（小組討論、數學日記）。"]}, {"id": "eu12-1", "u": "u12", "src": "104年 教育原理與制度 問答題第1題", "ctx": null, "q": "王老師覺得學生很調皮，上課時常搗蛋。例如：今天上課時，他轉身寫黑板，小雄投擲紙飛機，讓全班哄堂大笑。如果你是王老師，列舉兩種可能的處理策略(6 分)，並說明其理論依據(4 分)。", "a": "<ol><li><b>低調介入、全面掌控：</b>寫黑板時也隨時注意全班，事情發生時以眼神、走近、叫名字等方式立即低調制止，再繼續上課，避免過度反應造成負面漣漪。<br>理論依據：<b>庫寧（J. Kounin）</b>的全面掌控、同時處理、漣漪效應。</li>\n<li><b>消弱＋區別增強：</b>小雄的目的可能是獲得注意（全班大笑是增強物），老師不在全班面前大做文章，並對專心上課的行為給予增強；必要時採反應代價。<br>理論依據：<b>行為主義</b>（操作制約）。</li>\n<li><b>邏輯後果與了解錯誤目標：</b>請小雄課後撿起紙飛機、整理教室，並了解其行為目標（尋求注意）而給予適當注意的機會。<br>理論依據：<b>德瑞克斯（R. Dreikurs）</b>的邏輯後果。</li>\n<li><b>我訊息：</b>「當你在我寫黑板時丟紙飛機，大家無法專心，我很困擾，也擔心進度。」<br>理論依據：<b>高登（T. Gordon）</b>的教師效能訓練。（任擇兩種）</li></ol>", "g": ["寫兩個策略，每個策略都附「理論名稱＋學者」。", "可選：庫寧（全面掌控、低調介入）、行為主義（消弱＋區別增強）、德瑞克斯（邏輯後果、錯誤目標）、高登（我訊息）。", "配分 6＋4：策略要寫得具體，理論依據一兩句即可。"]}, {"id": "eu12-2", "u": "u12", "src": "104年 教育原理與制度 問答題第3題", "ctx": null, "q": "有效的班級經營必須了解影響班級行為的因素，試簡述影響班級行為的因素並予以分類。", "a": "<ol><li><b>學生個人因素：</b>身心發展與健康狀況（如 ADHD）、能力與學業成就、心理需求（尋求注意、權力）、人格特質與價值觀、家庭背景。</li>\n<li><b>教師因素：</b>教學能力與方法、領導方式與管教態度、對學生的期望、人格特質、班級經營技巧（規則建立、全面掌控等）。</li>\n<li><b>班級團體因素：</b>班級氣氛、同儕團體規範與次級文化、班級大小與組成、班規與常規運作。</li>\n<li><b>環境因素：</b>①物理環境：座位安排、教室空間、採光、噪音、溫度、佈置；②學校環境：學校文化、行政制度、課程與作息安排。</li>\n<li><b>家庭與社會因素：</b>家長期望與管教方式、社區文化、大眾傳播媒體。</li></ol>", "g": ["用分類作答，每類舉兩個因素：學生個人、教師、班級團體、環境（物理與學校）、家庭與社會。", "題目要求「予以分類」，所以一定要有類別標題。"]}, {"id": "eu12-3", "u": "u12", "src": "110年 學習者發展與適性輔導 綜合題第8題", "ctx": "五年級的課堂上，初次帶班的陳老師在班規中已明訂回答問題前要先舉手，但小高沒有舉手便搶答，老師仍幫他加分，一開始其他同學表情略微不開心，但還是安靜地放下手。第二次，同學開始出言抱怨「啊不就好棒棒」、「吼！一直插嘴餒」。第三次，同學大聲表達「吵死了」、「小心我打你」，小高立刻向老師告狀「老師，愷愷說要打我」。聽小高這麼一說，愷愷很不高興地從座位站起身，舉起椅子衝向小高，教室頓時陷入一片混亂。", "q": "經此事件後，輔導老師建議陳老師教導學生善用「我訊息」(I-message)策略，增進學生的溝通技巧。選出以下最符合「我訊息」策略的選項？並說明理由。(4 分)<br>(A)你總是不舉手就回答，那你要我怎麼樣<br>(B)小高你這樣不舉手就回答，我認為是錯的<br>(C)老師不公平！我認為應該選有舉手的同學回答<br>(D)小高犯規還被加分，讓老師點不到我，對我不公平", "a": "<p><b>答案：(D)</b></p>\n<p>我訊息包含三要素：①客觀描述對方的<b>行為</b>（小高犯規還被加分）；②該行為對我造成的<b>具體影響</b>（讓老師點不到我）；③我的<b>感受</b>（覺得不公平）。(D) 以自己的立場表達，不批評對方人格。(A) 是指責的「你訊息」；(B) 是評價判斷；(C) 直接指責老師並提出要求，未描述行為與影響。</p>", "g": ["先寫答案代號，再用「我訊息」三要素檢核：描述行為、對我的具體影響、我的感受。", "順便說明其他選項為何不符合：指責他人、評價判斷、要求對方。"]}, {"id": "eu12-4", "u": "u12", "src": "112年 學習者發展與適性輔導 綜合題第6題", "ctx": "六年級的明芳上課時常跟林老師唱反調，例如，當林老師發現他的桌上空無一物，請他和其他同學一樣拿出課本和習作時，他會跟老師說「我沒帶」、「我不知道」或「被我丟掉了」。然後笑著轉頭看其他同學，同學們也會跟著竊笑。<br>　　今天，在林老師講課時，明芳拿出尺敲桌面，接著大聲說：「上課好無聊，老師很不會教呢！」林老師中斷教學，制止明芳的行為，他卻對林老師扮起鬼臉，繼續敲，還跟著敲打的節奏唱「啦啦啦…」。班上同學看著這一幕紛紛大笑、跟著起鬨，於是明芳敲得更用力、唱得更大聲了。<br>　　在命令學生保持安靜並指派習作後，林老師把明芳叫到教室外走廊去談話。他責備明芳在班上搗蛋的行為，並嚴厲警告再犯的可能後果。", "q": "根據阿德勒學派對不良行為目標的觀點，分析明芳可能的行為目標並說明判斷的理由(4 分)。並根據該學派的理論，針對明芳的行為提出兩項因應作法(2 分)。", "a": "<p><b>行為目標：尋求權力</b>（爭取權力）。</p>\n<p><b>理由：</b>明芳刻意與老師唱反調（「我沒帶」「被我丟掉了」）、公開批評老師不會教；老師制止後不但不停止，反而扮鬼臉、敲得更用力，挑戰教師權威。老師的感受是被挑戰、生氣，而糾正後行為變本加厲，符合尋求權力的特徵。（因其同時想引起同學注意，亦可說明兼有尋求注意的成分）</p>\n<p><b>因應作法：</b>①避免權力鬥爭，不當眾爭辯，冷靜退出衝突，事後私下處理；②給予合理的權力與責任（如擔任小幫手、參與訂定班規）、提供有限選擇；③運用邏輯後果，並多給予鼓勵、肯定其正向表現。（任擇兩項）</p>", "g": ["先判斷錯誤目標（尋求注意、權力、報復、顯示無能），依據兩個線索：老師的感受，以及被糾正後的反應。", "再寫兩項因應作法，要符合阿德勒學派（避免權力鬥爭、給予合理權力、邏輯後果、鼓勵）。"]}, {"id": "eu12-5", "u": "u12", "src": "112年 學習者發展與適性輔導 綜合題第7題", "ctx": "六年級的明芳上課時常跟林老師唱反調，例如，當林老師發現他的桌上空無一物，請他和其他同學一樣拿出課本和習作時，他會跟老師說「我沒帶」、「我不知道」或「被我丟掉了」。然後笑著轉頭看其他同學，同學們也會跟著竊笑。<br>　　今天，在林老師講課時，明芳拿出尺敲桌面，接著大聲說：「上課好無聊，老師很不會教呢！」林老師中斷教學，制止明芳的行為，他卻對林老師扮起鬼臉，繼續敲，還跟著敲打的節奏唱「啦啦啦…」。班上同學看著這一幕紛紛大笑、跟著起鬨，於是明芳敲得更用力、唱得更大聲了。<br>　　在命令學生保持安靜並指派習作後，林老師把明芳叫到教室外走廊去談話。他責備明芳在班上搗蛋的行為，並嚴厲警告再犯的可能後果。", "q": "（承上題情境）針對上述事件，請利用「我－訊息」(I-message)的語氣幫林老師擬一段針對全班說的話，以向全班傳達指示，進而恢復班上秩序。(4 分)", "a": "<div class=\"box\">「剛才上課時有人敲桌子、唱歌，大家又跟著起鬨大笑（<b>行為</b>），我沒辦法繼續講解，大家也聽不到今天的重點（<b>影響</b>），我覺得很困擾，也擔心大家的學習（<b>感受</b>）。我希望大家現在安靜下來，拿出習作翻到第○頁開始練習（<b>期望</b>）。」</div>", "g": ["寫一段老師對全班說的話，包含四部分並可用括號標註：行為、影響、感受、期望。", "主詞用「我」，不點名指責明芳。"]}];
+const UK = Object.keys(DATA.units);
+const SHORT = {u2:"單元二",u5:"單元五",u8:"單元八",u10:"單元十",u12:"單元十二"};
+const TOPIC = {u2:"認知與語言發展",u5:"行為學派",u8:"皮亞傑與維高斯基的教學運用",u10:"直接教學法",u12:"班級經營"};
+const RATE = {ok:"已掌握",part:"部分掌握",no:"還不會"};
+const KEY = "edpsy-quiz-v1";
+const $ = s => document.querySelector(s);
+const app = $("#app");
+$("#total").textContent = DATA.qs.length; $("#etotal").textContent = ESSAYS.length;
+const QBY = Object.fromEntries(DATA.qs.map(q=>[q.id,q]));
+const esc = s => String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+function today(d=new Date()){ const z=n=>String(n).padStart(2,"0"); return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`; }
+function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+
+/* ---------- state & persistence ---------- */
+function blank(){ return {q:{}, rounds:0, daily:{}, open:null, es:{}, fav:{}, notes:{}, upd:0}; }
+function norm(v){ const b=blank(); if(!v||typeof v!=="object") return b; return {...b, ...v, q:v.q||{}, daily:v.daily||{}, es:v.es||{}, fav:v.fav||{}, notes:v.notes||{}}; }
+function lsLoad(){ try{ return norm(JSON.parse(localStorage.getItem(KEY))); }catch(e){ return blank(); } }
+let st = lsLoad();
+let dbRef = null, exCol = null, sampleFn = undefined, writing = false, pending = false, saveTimer = null;
+function merge(a,b){ // keep the richer record from two copies
+  const m = norm({});
+  for(const id of new Set([...Object.keys(a.q),...Object.keys(b.q)])){ const x=a.q[id], y=b.q[id]; m.q[id] = !x?y:!y?x:(y.n>x.n?y:x); }
+  for(const d of new Set([...Object.keys(a.daily),...Object.keys(b.daily)])){ const x=a.daily[d], y=b.daily[d]; m.daily[d] = !x?y:!y?x:(y.n>x.n?y:x); }
+  for(const id of new Set([...Object.keys(a.es),...Object.keys(b.es)])){ const x=a.es[id], y=b.es[id]; m.es[id] = !x?y:!y?x:((y.t||0)>(x.t||0)?y:x); }
+  for(const id of new Set([...Object.keys(a.fav),...Object.keys(b.fav)])){ const x=a.fav[id], y=b.fav[id]; m.fav[id] = !x?y:!y?x:((y.t||0)>(x.t||0)?y:x); }
+  for(const id of new Set([...Object.keys(a.notes),...Object.keys(b.notes)])){ const x=a.notes[id], y=b.notes[id]; m.notes[id] = !x?y:!y?x:((y.t||0)>(x.t||0)?y:x); }
+  m.rounds = Math.max(a.rounds||0,b.rounds||0);
+  const newer = (b.upd||0)>(a.upd||0)?b:a; m.open = newer.open||null; m.upd = Math.max(a.upd||0,b.upd||0);
+  return m;
+}
+function save(){
+  st.upd = Date.now();
+  try{ localStorage.setItem(KEY, JSON.stringify(st)); }catch(e){}
+  if(!dbRef) return;
+  clearTimeout(saveTimer); saveTimer = setTimeout(flush, 700);
+}
+async function flush(){
+  if(!dbRef) return;
+  if(writing){ pending=true; return; }
+  writing=true;
+  try{ await dbRef.set(JSON.parse(JSON.stringify(st))); setSync(true); }
+  catch(e){ if(e && (e.code==="invalid_argument"||e.code==="revoked"||e.code==="not_granted")) { dbRef=null; setSync(false); } }
+  writing=false;
+  if(pending){ pending=false; flush(); }
+}
+function setSync(on){ const el=$("#sync"); if(!el) return; el.textContent = on?"進度已同步到你的帳號":"進度存在這個瀏覽器"; el.classList.toggle("on",on); }
+async function connect(){
+  try{
+    if(!window.claude?.use) return;
+    const [db,user] = await Promise.all([claude.use("db"), claude.use("user")]);
+    if(!db || !user) return;
+    const uid = await user.id(); if(!uid) return;
+    const ref = db.doc("data/users/"+uid+"/progress");
+    const snap = await ref.get();
+    if(snap.exists){ st = merge(st, norm(snap.data())); try{ localStorage.setItem(KEY, JSON.stringify(st)); }catch(e){} }
+    dbRef = ref; exCol = ref.collection("ex"); setSync(true);
+    if(!snap.exists && (Object.keys(st.q).length || Object.keys(st.es).length)) flush();
+    if(view==="home"||view==="essays"||view==="fav") render();
+  }catch(e){}
+}
+
+/* ---------- favorites ---------- */
+const isFav = id => !!(st.fav[id] && !st.fav[id].del);
+function favCount(){ return Object.keys(st.fav).filter(isFav).length; }
+function toggleFav(id){ const x=st.fav[id]||{}; if(isFav(id)) st.fav[id]={...x, del:true, t:Date.now()}; else st.fav[id]={note:x.note||"", t:Date.now()}; save(); }
+function favBtnHTML(id){ return `<button class="favbtn" data-fav="${id}" aria-pressed="${isFav(id)}">${isFav(id)?"★ 已收藏":"☆ 收藏"}</button>`; }
+function wireFav(root=document){ root.querySelectorAll("[data-fav]").forEach(b=>b.onclick=()=>{ toggleFav(b.dataset.fav); b.outerHTML=favBtnHTML(b.dataset.fav); wireFav(root); const c=$("#favcount"); if(c) c.textContent=favCount(); }); }
+
+/* ---------- 每題筆記（作答後出現，可收合） ---------- */
+function noteOf(id){ return (st.notes[id]?.text) ?? (st.fav[id]?.note || ""); }
+function noteHTML(id, open=false){
+  const n=noteOf(id);
+  return `<details class="notebox" data-note="${id}" ${open?"open":""}><summary>📝 我的筆記${n?`<span class="has">・已寫：${esc(n.replace(/\s+/g," ").slice(0,18))}${n.length>18?"…":""}</span>`:"・點開記下疑惑"}</summary>
+    <textarea id="note-${id}" aria-label="這題的筆記" placeholder="寫下疑惑或記憶線索，自動保存；之後再遇到這題都看得到。">${esc(n)}</textarea></details>`;
+}
+function wireNote(root=document){ root.querySelectorAll("details.notebox").forEach(d=>{ const id=d.dataset.note, ta=d.querySelector("textarea"); let t=null;
+  ta.oninput=()=>{ clearTimeout(t); t=setTimeout(()=>{ st.notes[id]={text:ta.value, t:Date.now()}; save();
+    const n=ta.value; d.querySelector("summary").innerHTML=`📝 我的筆記${n?`<span class="has">・已寫：${esc(n.replace(/\s+/g," ").slice(0,18))}${n.length>18?"…":""}</span>`:"・點開記下疑惑"}`; },500); }; }); }
+
+/* ---------- 我求詳解 ---------- */
+const EXK = "edpsy-ex2-";   // v2 詳解格式（PEES，JSON）
+async function exGet(id){
+  try{ const v=localStorage.getItem(EXK+id); if(v) return JSON.parse(v); }catch(e){}
+  if(exCol){ try{ const s=await exCol.doc("v2-"+id).get(); if(s.exists){ const d=s.data().ex; try{localStorage.setItem(EXK+id,JSON.stringify(d));}catch(e){} return d; } }catch(e){} }
+  return null;
+}
+async function exPut(id,ex){ try{ localStorage.setItem(EXK+id,JSON.stringify(ex)); }catch(e){} if(exCol){ try{ await exCol.doc("v2-"+id).set({ex, t:Date.now()}); }catch(e){} } }
+function plain(h){ return String(h).replace(/<br\s*\/?>/g,"\n").replace(/<[^>]+>/g," ").replace(/&amp;/g,"&").replace(/[ \t]+/g," ").trim(); }
+function searchLinks(q){
+  const con = DATA.concepts[q.c].n.replace(/[：:].*$/,"");
+  const stem = plain(q.q).replace(/\n/g," ").slice(0,38);
+  const g = s => "https://www.google.com/search?q="+encodeURIComponent(s);
+  return `<div class="links">
+    <a href="${g(stem+" 教檢 詳解")}" target="_blank" rel="noopener">Google 搜尋這題的詳解</a>
+    <a href="${g(q.src.replace(/ 選擇題第(\d+)題/," 第$1題")+" 詳解")}" target="_blank" rel="noopener">依出處搜尋</a>
+    <a href="${g(con+" 教育心理學")}" target="_blank" rel="noopener">搜尋概念「${esc(con)}」</a></div>`;
+}
+function exPrompt(q){
+  const con=DATA.concepts[q.c];
+  return `你是台灣教師資格考試「教育心理學」的家教。請為下面這題寫簡短詳解，給準備國小教檢的研究生看。
+
+題目（${q.src}）：
+${plain(q.q)}
+${q.o.map((o,k)=>`(${"ABCD"[k]})${o}`).join("\n")}
+官方答案：(${"ABCD"[q.a]})
+相關概念：${con.n}（${con.tip}）
+
+只回覆一個 JSON 物件，欄位如下，全部用繁體中文純文字（不要 Markdown 符號）。point、explain、example、summary 四欄合計不超過 300 字：
+{
+ "point": "主要論點：這題的答案為什麼是 (${"ABCD"[q.a]})，一句話",
+ "explain": "詮釋：關鍵概念與判斷依據，必要時一句說明最容易誤選的選項為何不對，2–3 句",
+ "example": "一個常見的國小教室或生活例子，1–2 句",
+ "summary": "小總結，一句",
+ "mnemonic": [{"text": "記憶口訣", "source": "常見" 或 "自編"}],
+ "table": null 或 {"title": "表格標題", "headers": ["…","…"], "rows": [["…","…"]]},
+ "dispute": "" 或 "若你認為官方答案有爭議，一句說明（不要改答案）"
+}
+規則：
+- mnemonic：若有教檢考生之間廣為流傳的口訣，source 填「常見」；沒有把握就自己編一個並填「自編」，不要假稱出自網路。最多 2 個，可為空陣列。
+- table：只有在比較兩個以上相近概念時才給（例如正增強／負增強／懲罰的對照），最多 4 列、3 欄，每格 12 字以內；不需要就填 null。`;
+}
+function stemQuery(q){ return plain(q.q).replace(/\s+/g," ").replace(/^[^\S]*/,"").slice(0,120); }
+function explainHTML(q){ const t=stemQuery(q); return `<div class="row"><a class="btn ghost small" style="text-decoration:none" data-ex="${q.id}" href="https://www.google.com/search?q=${encodeURIComponent(t)}" target="_blank" rel="noopener">🔍 我求詳解（Google 搜尋題幹）</a><span class="muted" id="exmsg-${q.id}"></span></div>`; }
+function wireExplain(root=document){ root.querySelectorAll("[data-ex]").forEach(a=>a.onclick=()=>{ const q=QBY[a.dataset.ex], m=$("#exmsg-"+q.id), t=stemQuery(q);
+  try{ navigator.clipboard.writeText(t).then(()=>{ if(m) m.textContent="已複製題幹，並在新分頁搜尋"; }).catch(()=>{ if(m) m.textContent="已在新分頁搜尋"; }); }catch(e){ if(m) m.textContent="已在新分頁搜尋"; } }); }
+function exRender(ex){
+  const t=ex.table && Array.isArray(ex.table.rows) && ex.table.rows.length ? `<div class="tbl"><div class="label">${esc(ex.table.title||"對照表")}</div><table class="t"><tr>${(ex.table.headers||[]).map(h=>`<th>${esc(h)}</th>`).join("")}</tr>${ex.table.rows.slice(0,6).map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</table></div>` : "";
+  const m=(ex.mnemonic||[]).filter(x=>x&&x.text).slice(0,2).map(x=>`<li>${esc(x.text)} <span class="pill ${x.source==="常見"?"ok":"none"}">${x.source==="常見"?"常見口訣":"自編口訣"}</span></li>`).join("");
+  return `<dl class="pees">
+    <dt>Point 主要論點</dt><dd>${esc(ex.point||"")}</dd>
+    <dt>詮釋</dt><dd>${esc(ex.explain||"")}</dd>
+    <dt>Example 例子</dt><dd>${esc(ex.example||"")}</dd>
+    <dt>小總結</dt><dd>${esc(ex.summary||"")}</dd></dl>
+    ${t}
+    ${m?`<div class="label">記憶口訣</div><ul class="mn">${m}</ul>`:""}
+    ${ex.dispute?`<p class="tip" style="margin:0">補充：${esc(ex.dispute)}</p>`:""}`;
+}
+async function showExplain(q, btn){
+  const box=$("#ex-"+q.id); if(!box) return;
+  box.innerHTML=`<div class="exbox"><div class="label">Claude 詳解</div><div class="ai wait" id="ai-${q.id}">讀取中…</div><div class="label">網路搜尋</div>${searchLinks(q)}<p class="tip" id="aitip-${q.id}" style="margin:0"></p></div>`;
+  const out=$("#ai-"+q.id), tip=$("#aitip-"+q.id);
+  const done = ex => { out.classList.remove("wait"); out.style.whiteSpace="normal"; out.style.display="grid"; out.style.gap="10px"; out.innerHTML=exRender(ex); tip.textContent="詳解由 Claude 撰寫並已存檔；標示「自編」的口訣是 Claude 編的，有疑慮請用上方連結查證。"; if(btn) btn.remove(); };
+  const saved=await exGet(q.id);
+  if(saved){ done(saved); return; }
+  if(sampleFn===undefined){ try{ sampleFn = window.claude?.use ? await claude.use("sample") : null; }catch(e){ sampleFn=null; } }
+  if(!sampleFn){ out.textContent="這個檢視無法請 Claude 撰寫詳解（需要在 claude.ai 登入開啟）。請先用下方連結搜尋網路上的解析。"; out.classList.remove("wait"); if(btn) btn.disabled=false; return; }
+  out.textContent="Claude 撰寫中…（第一次使用會先請你允許）";
+  try{
+    const ex = await sampleFn.json(exPrompt(q));
+    if(!ex || typeof ex!=="object" || !ex.point) throw {code:"bad_output"};
+    done(ex); await exPut(q.id, ex);
+  }catch(e){
+    out.classList.remove("wait");
+    out.textContent = ({not_granted:"你沒有允許這個頁面使用 Claude，所以無法產生詳解。可以先用下方連結搜尋。", rate_limited:"請求太頻繁，請稍等一分鐘再按一次。", cancelled:"已停止。"}[e&&e.code] || "這次沒有成功產生詳解，請再按一次，或先用下方連結搜尋。");
+    if(btn) btn.disabled=false;
+  }
+}
+
+/* ---------- stats helpers ---------- */
+function qStat(id){ return st.q[id] || {n:0,w:0,last:null}; }
+function agg(f){ let n=0,w=0; for(const q of DATA.qs){ if(!f(q)) continue; const s=qStat(q.id); n+=s.n; w+=s.w; } return {n,w}; }
+function pct(a){ return a.n ? Math.round((a.n-a.w)/a.n*100) : null; }
+function logDaily(ok){ const d=today(); const x=st.daily[d]||{n:0,w:0,r:0,e:0}; x.n++; if(!ok) x.w++; st.daily[d]=x; }
+function streak(){ let s=0; const d=new Date(); if(!(st.daily[today(d)]?.n||st.daily[today(d)]?.e)) d.setDate(d.getDate()-1);
+  while(st.daily[today(d)]?.n || st.daily[today(d)]?.e){ s++; d.setDate(d.getDate()-1); } return s; }
+
+let cfg = {units:new Set(UK), mode:"mix"};
+let round = null, view = "home", essayId = null, essayFilter = "all", homeTab = "mc";
+
+function render(){ if(view==="home") home(); else if(view==="essays") essayList(); else if(view==="essay") essayView(essayId); else if(view==="q") ask(); else if(view==="result") result(); else if(view==="fav") favView(essayId); }
+
+/* ---------- home ---------- */
+function home(){
+  view="home";
+  const pool = DATA.qs.filter(q=>cfg.units.has(q.u));
+  const wrongPool = pool.filter(q=>qStat(q.id).last===false);
+  const newPool = pool.filter(q=>qStat(q.id).n===0);
+  const poolN = cfg.mode==="wrong"?wrongPool.length:cfg.mode==="new"?newPool.length:pool.length;
+  const seen = DATA.qs.filter(q=>qStat(q.id).n>0).length;
+  const td = st.daily[today()]||{n:0,w:0,r:0,e:0};
+  const days = [...Array(7)].map((_,k)=>{ const d=new Date(); d.setDate(d.getDate()-6+k); return today(d); });
+  const maxN = Math.max(10, ...days.map(d=>st.daily[d]?.n||0));
+  const week = days.map(d=>{ const x=st.daily[d]||{n:0,w:0}; const h=x.n/maxN*100, hw=x.w/maxN*100;
+    return `<div class="day ${d===today()?"now":""}"><div class="col"><i class="w" style="height:${hw}%"></i><i style="height:${h-hw}%"></i></div><span class="num" style="text-align:center">${x.n||""}</span><span>${d===today()?"今天":d.slice(5).replace("-","/")}</span></div>`; }).join("");
+  const bars = UK.map(u=>{
+    const a = agg(q=>q.u===u), p = pct(a), cnt = DATA.qs.filter(q=>q.u===u).length, sn = DATA.qs.filter(q=>q.u===u&&qStat(q.id).n>0).length;
+    const cls = p===null?"":p>=80?"":p>=60?"mid":"low";
+    return `<div class="ubar"><span>${SHORT[u]} ${TOPIC[u]}</span><div class="track"><div class="fill ${cls}" style="width:${p??0}%"></div></div><span class="num">${p===null?`未作答`:`${p}%・${sn}/${cnt}題`}</span></div>`;
+  }).join("");
+  const weak = weakConcepts(null).slice(0,3);
+  const eweak = ESSAYS.filter(e=>st.es[e.id]?.r && st.es[e.id].r!=="ok");
+  const op = st.open && st.open.ids && st.open.ids.every(id=>QBY[id]) ? st.open : null;
+  app.innerHTML = `
+  <div class="wrap" style="gap:20px">
+    <section class="sheet">
+      <div class="row" style="justify-content:space-between"><h2>今日進度</h2><span class="muted">${today().replace(/-/g,"/")}</span></div>
+      <div class="today">
+        <div class="stat"><span class="v">${td.n}</span><span class="k">今日作答（選擇題）</span></div>
+        <div class="stat"><span class="v">${td.n?Math.round((td.n-td.w)/td.n*100)+"%":"—"}</span><span class="k">今日正確率</span></div>
+        <div class="stat"><span class="v">${streak()}</span><span class="k">連續練習天數</span></div>
+        <div class="stat"><span class="v">${seen}<span class="k">/${DATA.qs.length}</span></span><span class="k">題庫已做過</span></div>
+      </div>
+      <div class="label">最近 7 天作答題數（紅色為答錯）</div>
+      <div class="week">${week}</div>
+      ${op?`<div class="resume"><span>上次的一回還沒做完：已作答 ${op.ans.filter(Boolean).length}/${op.ids.length} 題</span><button class="btn" id="resume">接著做</button></div>`:""}
+    </section>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" id="tab-mc" aria-selected="${homeTab==="mc"}">選擇題闖關</button>
+      <button class="tab" role="tab" id="tab-es" aria-selected="${homeTab==="es"}">非選擇題練習</button>
+      <button class="tab" role="tab" id="tab-fav" aria-selected="${homeTab==="fav"}">★ 收藏（<span id="favcount">${favCount()}</span>）</button>
+    </div>
+    <div id="tabbody"></div>
+    <section class="sheet">
+      <div class="row" style="justify-content:space-between"><h2>累積正確率</h2><span class="muted">已完成 ${st.rounds} 回</span></div>
+      <div class="ubars">${bars}</div>
+      ${weak.length?`<div class="label" style="margin-top:6px">目前最需補強的概念</div>${weak.map(c=>conHTML(c,false)).join("")}`:`<p class="muted" style="margin:0">完成一回後，這裡會列出你最需要補強的概念。</p>`}
+      ${eweak.length?`<div class="label" style="margin-top:6px">非選擇題待加強（${eweak.length}）</div><div class="elist">${eweak.slice(0,4).map(eItemHTML).join("")}</div>`:""}
+      <div id="resetArea" class="row"><button class="btn ghost small" id="reset">清除作答紀錄</button></div>
+    </section>
+  </div>`;
+  if(op) $("#resume").onclick=()=>{ round={qs:op.ids.map(id=>QBY[id]), i:Math.min(op.i, op.ids.length-1), ans:op.ans.slice(), fav:!!op.fav}; while(round.i<round.qs.length-1 && round.ans[round.i]) round.i++; ask(); };
+  $("#tab-mc").onclick=()=>{homeTab="mc"; home();}; $("#tab-es").onclick=()=>{homeTab="es"; home();}; $("#tab-fav").onclick=()=>{homeTab="fav"; home();};
+  const tb=$("#tabbody");
+  if(homeTab==="mc"){
+    const left = UK.map(u=>{ const all=DATA.qs.filter(q=>q.u===u), rest=all.filter(q=>qStat(q.id).n===0).length; return {u, all:all.length, rest}; });
+    const restAll = left.reduce((a,x)=>a+x.rest,0);
+    tb.innerHTML=`<section class="sheet">
+      <div class="row" style="justify-content:space-between"><h2>題庫進度：還沒做過的題目</h2><span class="muted">剩 ${restAll} / ${DATA.qs.length} 題</span></div>
+      <div class="ubars">${left.map(x=>`<div class="ubar left"><span>${SHORT[x.u]} ${TOPIC[x.u]}</span><div class="track"><div class="fill" style="width:${(x.all-x.rest)/x.all*100}%"></div></div>${x.rest?`<button class="btn ghost small" data-left="${x.u}">做完剩 ${x.rest} 題</button>`:`<span class="pill ok" style="justify-self:end">已全部做過</span>`}</div>`).join("")}</div>
+      ${restAll?`<div class="row"><button class="btn ghost" data-left="all">所有單元的剩餘題目（${restAll}）</button><span class="muted">只出沒做過的題目，每回 10 題，不會重複</span></div>`:`<p class="muted" style="margin:0">86 題都做過一輪了！接下來可用「智慧出題」或「只練上次答錯的」複習。</p>`}
+    </section>
+    <section class="sheet">
+      <div class="label">單元（可複選）</div>
+      <div class="chips" id="uchips">${UK.map(u=>`<button class="chip" id="chip-${u}" data-u="${u}" aria-pressed="${cfg.units.has(u)}">${SHORT[u]}・${TOPIC[u]}（${DATA.qs.filter(q=>q.u===u).length}）</button>`).join("")}</div>
+      <div class="label">出題方式</div>
+      <div class="chips" id="mchips">
+        <button class="chip" id="mode-mix" data-m="mix" aria-pressed="${cfg.mode==="mix"}">智慧出題（先出答錯過、沒做過的題目）</button>
+        <button class="chip" id="mode-new" data-m="new" aria-pressed="${cfg.mode==="new"}">只出沒做過的（${newPool.length}）</button>
+        <button class="chip" id="mode-rand" data-m="rand" aria-pressed="${cfg.mode==="rand"}">完全隨機</button>
+        <button class="chip" id="mode-wrong" data-m="wrong" aria-pressed="${cfg.mode==="wrong"}">只練上次答錯的（${wrongPool.length}）</button>
+      </div>
+      <div class="row"><button class="btn" id="start" ${poolN?"":"disabled"}>開始作答 ${Math.min(10,poolN)||10} 題</button><span class="muted">${op?"開始新的一回會取代未完成的那一回":`可選題數：${poolN}`}</span></div>
+    </section>`;
+    document.querySelectorAll("#uchips .chip").forEach(b=>b.onclick=()=>{ const u=b.dataset.u; if(cfg.units.has(u)){ if(cfg.units.size>1) cfg.units.delete(u);} else cfg.units.add(u); home(); });
+    document.querySelectorAll("#mchips .chip").forEach(b=>b.onclick=()=>{ cfg.mode=b.dataset.m; home(); });
+    $("#start").onclick=start;
+    tb.querySelectorAll("[data-left]").forEach(b=>b.onclick=()=>{ const u=b.dataset.left; cfg.units=new Set(u==="all"?UK:[u]); cfg.mode="new"; start(); });
+  } else if(homeTab==="fav"){
+    tb.innerHTML = favListHTML();
+    tb.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>{ const id=b.dataset.open; if(QBY[id]) favView(id); else essayView(id); });
+    const fp=$("#favPractice"); if(fp) fp.onclick=startFav;
+  } else {
+    const done = ESSAYS.filter(e=>st.es[e.id]?.r).length;
+    tb.innerHTML=`<section class="sheet">
+      <p style="margin:0">每題先看<b>作答指引</b>，自己寫出答案，再對照<b>參考答案</b>並自評掌握程度。草稿會自動保存。</p>
+      <div class="row"><button class="btn" id="goEs">進入非選擇題（${ESSAYS.length} 題）</button><span class="muted">已自評 ${done}/${ESSAYS.length} 題</span></div>
+    </section>`;
+    $("#goEs").onclick=essayList;
+  }
+  document.querySelectorAll(".eitem[data-id]").forEach(b=>b.onclick=()=>essayView(b.dataset.id));
+  $("#reset").onclick=()=>{
+    $("#resetArea").innerHTML=`<span class="confirm">確定清除所有作答紀錄（含每日進度與非選擇題草稿）？<button class="btn small" id="yes">清除</button><button class="btn ghost small" id="no">取消</button></span>`;
+    $("#yes").onclick=()=>{ st=blank(); save(); home(); };
+    $("#no").onclick=home;
+  };
+}
+
+function pick(){
+  let pool = DATA.qs.filter(q=>cfg.units.has(q.u));
+  if(cfg.mode==="wrong") return shuffle(pool.filter(q=>qStat(q.id).last===false)).slice(0,10);
+  if(cfg.mode==="rand") return shuffle(pool).slice(0,10);
+  if(cfg.mode==="new") return shuffle(pool.filter(q=>qStat(q.id).n===0)).slice(0,10);
+  const scored = pool.map(q=>{ const s=qStat(q.id); let w=Math.random();
+    if(s.last===false) w+=3; else if(s.n===0) w+=2; else w+=Math.max(0,1-s.n*0.25)+s.w*0.5; return [w,q]; });
+  scored.sort((a,b)=>b[0]-a[0]);
+  return shuffle(scored.slice(0,10).map(x=>x[1]));
+}
+function persistOpen(){ st.open = round && !round.done ? {ids:round.qs.map(q=>q.id), i:round.i, ans:round.ans.map(a=>a||null), fav:!!round.fav} : null; }
+function startFav(){ const qs=shuffle(Object.keys(st.fav).filter(id=>isFav(id)&&QBY[id]).map(id=>QBY[id])).slice(0,10); if(!qs.length) return; round={qs,i:0,ans:[],fav:true}; persistOpen(); save(); ask(); }
+function start(){ const qs=pick(); if(!qs.length) return; round={qs,i:0,ans:[]}; persistOpen(); save(); ask(); }
+
+/* ---------- question ---------- */
+function bubbles(){
+  return `<div class="card" aria-label="作答進度">${round.qs.map((q,k)=>{ const a=round.ans[k]; const cls=!a?(k===round.i?"now":""):(a.ok?"ok":"bad"); return `<span class="bub ${cls}">${k+1}</span>`; }).join("")}</div>`;
+}
+function ask(){
+  view="q";
+  const q = round.qs[round.i], con = DATA.concepts[q.c];
+  app.innerHTML = `
+  <section class="sheet">
+    <div class="row" style="justify-content:space-between">
+      <button class="btn ghost small" id="prev" ${round.i===0?"disabled":""}>← 上一題</button>
+      <button class="btn ghost small" id="quit">先離開，回首頁</button>
+    </div>
+    ${bubbles()}
+    <div class="qhead"><span>第 ${round.i+1} / ${round.qs.length} 題　<span class="tag">${SHORT[q.u]}・${esc(con.n)}</span></span>${favBtnHTML(q.id)}</div>
+    <div class="stem">${q.q} <span class="src">（${esc(q.src)}）</span></div>
+    <div class="opts">${q.o.map((o,k)=>`<button class="opt" id="opt-${k}" data-k="${k}"><span class="b">${"ABCD"[k]}</span><span>${esc(o)}</span></button>`).join("")}</div>
+    <div id="fb"></div>
+  </section>`;
+  $("#prev").onclick=()=>{ if(round.i>0){ round.i--; ask(); } };
+  $("#quit").onclick=()=>{ persistOpen(); save(); home(); };
+  wireFav(app);
+  if(round.ans[round.i]){ showFeedback(round.ans[round.i].k); return; }
+  document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>answer(+b.dataset.k));
+}
+function answer(k){
+  const q=round.qs[round.i], ok=k===q.a;
+  round.ans[round.i]={k,ok};
+  const s=qStat(q.id); s.n++; if(!ok) s.w++; s.last=ok; st.q[q.id]=s; logDaily(ok);
+  persistOpen(); save(); showFeedback(k);
+}
+function showFeedback(k){
+  const q=round.qs[round.i], ok=k===q.a;
+  document.querySelectorAll(".opt").forEach(b=>{ const j=+b.dataset.k; b.disabled=true; if(j===q.a) b.classList.add("right"); else if(j===k) b.classList.add("wrong"); });
+  const last = round.i===round.qs.length-1;
+  $("#fb").innerHTML = `<div class="fb ${ok?"":"no"}"><b>${ok?"答對了！":"答錯了，正確答案是 ("+"ABCD"[q.a]+")"}</b>${esc(q.e)}</div>
+    <div style="margin-top:10px;display:grid;gap:8px">${noteHTML(q.id, !!noteOf(q.id))}${explainHTML(q)}</div>
+    <div class="row" style="margin-top:12px"><button class="btn" id="next">${last?"看結果與補強建議":"下一題"}</button></div>`;
+  app.querySelector(".card").outerHTML = bubbles();
+  app.querySelector(".card").outerHTML = bubbles();
+  wireExplain(app); wireNote(app);
+  $("#next").onclick=()=>{ if(last){ if(!round.done){ round.done=true; st.rounds++; const d=st.daily[today()]; if(d) d.r=(d.r||0)+1; persistOpen(); save(); } result(); } else { round.i++; persistOpen(); save(); ask(); } };
+  $("#next").focus();
+}
+
+/* ---------- advice ---------- */
+function weakConcepts(rd){
+  const out=[];
+  for(const c in DATA.concepts){
+    const qs=DATA.qs.filter(q=>q.c===c); const cum=agg(q=>q.c===c); const r=rd?(rd[c]||{n:0,w:0}):{n:0,w:0};
+    if(!cum.n) continue;
+    const rate=cum.w/cum.n, need=r.w*2+rate*(Math.min(cum.n,6)/2);
+    if(r.w>0 || (cum.n>=2&&rate>=0.4) || (!rd&&rate>0)) out.push({c,u:qs[0].u,cum,r,rate,need});
+  }
+  return out.sort((a,b)=>b.need-a.need);
+}
+function conHTML(x,showRound){
+  const con=DATA.concepts[x.c], p=Math.round((1-x.rate)*100), hot=(x.r.w>0&&x.rate>=0.5);
+  return `<div class="con ${hot?"hot":""}"><span class="cn">${SHORT[x.u]}・${esc(con.n)}</span>
+    <span class="cs">${showRound&&x.r.n?`本回 錯 ${x.r.w}／${x.r.n} 題・`:""}累計正確率 ${p}%（${x.cum.n} 次）</span>
+    <span class="tip">複習重點：${esc(con.tip)}</span></div>`;
+}
+function result(){
+  view="result";
+  const ans=round.ans, right=ans.filter(a=>a&&a.ok).length, tot=round.qs.length, ratio=right/tot;
+  const rd={}, ud={};
+  round.qs.forEach((q,k)=>{ const ok=ans[k]&&ans[k].ok; (rd[q.c] ||= {n:0,w:0}).n++; if(!ok) rd[q.c].w++; (ud[q.u] ||= {n:0,w:0}).n++; if(!ok) ud[q.u].w++; });
+  const weak=weakConcepts(rd), byUnit={}; weak.forEach(x=>(byUnit[x.u] ||= []).push(x));
+  const unitOrder=Object.keys(byUnit).sort((a,b)=>(ud[b]?.w||0)-(ud[a]?.w||0)||byUnit[b].length-byUnit[a].length);
+  const strong=UK.filter(u=>ud[u]&&ud[u].w===0);
+  const msg=ratio===1?"全對！":ratio>=.8?"表現穩定":ratio>=.6?"還有幾個漏洞":"需要加強複習";
+  const advHTML = unitOrder.length ? unitOrder.map(u=>{
+    const r=ud[u]; const level=r&&r.w/r.n>=0.5?["bad","優先補強"]:["warn","需要補強"];
+    const ess=ESSAYS.filter(e=>e.u===u&&st.es[e.id]?.r!=="ok").slice(0,2);
+    return `<div class="unitAdv"><h3><span>${SHORT[u]}：${TOPIC[u]}</span><span class="pill ${level[0]}">${level[1]}${r?`・本回 ${r.n-r.w}/${r.n}`:""}</span></h3>
+      ${byUnit[u].slice(0,4).map(x=>conHTML(x,true)).join("")}
+      ${ess.length?`<div class="label">延伸練習：同單元非選擇題</div><div class="elist">${ess.map(eItemHTML).join("")}</div>`:""}</div>`; }).join("")
+    : `<p class="muted" style="margin:0">這一回沒有需要補強的概念。可以換其他單元，或改用「完全隨機」再挑戰一次。</p>`;
+  const wrongs=round.qs.map((q,k)=>[q,ans[k]]).filter(([q,a])=>a&&!a.ok);
+  app.innerHTML=`
+  <div class="wrap" style="gap:20px">
+  <section class="sheet">
+    ${bubbles()}
+    <div class="score"><span class="big">${right}</span><span>／${tot}　${msg}</span></div>
+    <div class="row">${UK.filter(u=>ud[u]).map(u=>`<span class="pill ${ud[u].w?(ud[u].w/ud[u].n>=.5?"bad":"warn"):"ok"}">${SHORT[u]} ${ud[u].n-ud[u].w}/${ud[u].n}</span>`).join("")}</div>
+  </section>
+  <section class="sheet">
+    <h2>補強建議</h2>
+    <p class="muted" style="margin:0">依本回答錯的題目，加上累積紀錄中錯誤率 40% 以上的概念排序。</p>
+    <div class="adv">${advHTML}</div>
+    ${strong.length?`<p class="muted" style="margin:0">本回全對的單元：${strong.map(u=>SHORT[u]+"・"+TOPIC[u]).join("、")}。</p>`:""}
+    ${wrongs.length?`<details open><summary>本回答錯的題目（${wrongs.length}）</summary><div class="wl">${wrongs.map(([q,a])=>`
+      <div class="it"><div>${q.q} <span class="src">（${esc(q.src)}）</span></div>
+      <div>你選 <b style="color:var(--bad)">(${"ABCD"[a.k]}) ${esc(q.o[a.k])}</b><br>正解 <b style="color:var(--ok)">(${"ABCD"[q.a]}) ${esc(q.o[q.a])}</b></div>
+      <div class="muted">${esc(q.e)}</div><div class="row">${favBtnHTML(q.id)}</div>${noteHTML(q.id)}${explainHTML(q)}</div>`).join("")}</div></details>`:""}
+    <div class="row">
+      <button class="btn" id="again">${round.fav?"再練一次收藏題":cfg.mode==="new"?(()=>{const r=DATA.qs.filter(q=>cfg.units.has(q.u)&&qStat(q.id).n===0).length; return r?`繼續做剩下的 ${r} 題`:"這些單元都做完了，回首頁";})():"再來 10 題"}</button>
+      ${wrongs.length?`<button class="btn ghost" id="redo">重練這回答錯的 ${wrongs.length} 題</button>`:""}
+      <button class="btn ghost" id="rprev">← 回上一題</button>
+      <button class="btn ghost" id="back">回首頁</button>
+    </div>
+  </section></div>`;
+  $("#again").onclick=round.fav?startFav:()=>{ if(cfg.mode==="new" && !DATA.qs.some(q=>cfg.units.has(q.u)&&qStat(q.id).n===0)) home(); else start(); }; $("#back").onclick=home;
+  $("#rprev").onclick=()=>{ round.i=round.qs.length-1; ask(); };
+  if(wrongs.length) $("#redo").onclick=()=>{ round={qs:shuffle(wrongs.map(w=>w[0])),i:0,ans:[]}; persistOpen(); save(); ask(); };
+  document.querySelectorAll(".eitem[data-id]").forEach(b=>b.onclick=()=>essayView(b.dataset.id));
+  wireFav(app); wireExplain(app); wireNote(app);
+  window.scrollTo(0,0);
+}
+
+/* ---------- favorites area ---------- */
+function favListHTML(){
+  const ids = Object.keys(st.fav).filter(isFav).sort((a,b)=>(st.fav[b].t||0)-(st.fav[a].t||0));
+  if(!ids.length) return `<section class="sheet"><p class="muted" style="margin:0">還沒有收藏。作答時按題目右上角的「☆ 收藏」，就能把有疑惑的題目存到這裡，之後複習、寫筆記或求詳解。</p></section>`;
+  const item = id => { const q=QBY[id], e=ESSAYS.find(x=>x.id===id); const o=q||e; if(!o) return "";
+    const note=noteOf(id); const kind=q?"選擇題":"非選擇題";
+    const txt=plain(o.q).replace(/\n/g," ");
+    return `<button class="eitem" data-open="${id}"><span><span class="s">${SHORT[o.u]}・${kind}・${esc(o.src)}</span><span class="t">${esc(txt)}</span>${note?`<span class="tip">筆記：${esc(note.slice(0,40))}${note.length>40?"…":""}</span>`:""}</span><span class="pill warn">★</span></button>`; };
+  return `<section class="sheet"><div class="row" style="justify-content:space-between"><h2>收藏專區</h2><span class="muted">${ids.length} 題・新收藏在前</span></div>
+    ${(()=>{ const mc=ids.filter(id=>QBY[id]).length; return mc?`<div class="resume"><span>只練收藏的選擇題（${mc} 題${mc>10?"，每回隨機 10 題":""}）</span><button class="btn" id="favPractice">開始練習</button></div>`:""; })()}<div class="elist">${ids.map(item).join("")}</div></section>`;
+}
+function favView(id){
+  const q=QBY[id]; if(!q){ home(); return; }
+  view="fav"; essayId=id;
+  const con=DATA.concepts[q.c], f=st.fav[id]||{};
+  const s=qStat(id);
+  app.innerHTML=`<section class="sheet">
+    <div class="row" style="justify-content:space-between"><button class="btn ghost small" id="fback">← 回收藏專區</button>${favBtnHTML(id)}</div>
+    <div class="qhead"><span class="tag">${SHORT[q.u]}・${esc(con.n)}</span><span>${s.n?`作答 ${s.n} 次・錯 ${s.w} 次`:"尚未作答"}</span></div>
+    <div class="stem">${q.q} <span class="src">（${esc(q.src)}）</span></div>
+    <div class="opts">${q.o.map((o,k)=>`<div class="opt ${k===q.a?"right":""}" style="cursor:default"><span class="b">${"ABCD"[k]}</span><span>${esc(o)}</span></div>`).join("")}</div>
+    <div class="fb"><b>答案 (${"ABCD"[q.a]})</b>${esc(q.e)}</div>
+    ${noteHTML(id, true)}
+    ${explainHTML(q)}
+  </section>`;
+  $("#fback").onclick=()=>{ homeTab="fav"; home(); };
+  wireFav(app); wireExplain(app); wireNote(app);
+
+  window.scrollTo(0,0);
+}
+
+/* ---------- essays ---------- */
+function eItemHTML(e){
+  const r=st.es[e.id]?.r; const pill=r?`<span class="pill ${r==="ok"?"ok":r==="part"?"warn":"bad"}">${RATE[r]}</span>`:(st.es[e.id]?.d?`<span class="pill none">草稿</span>`:`<span class="pill none">未練習</span>`);
+  const txt=(e.ctx?"【題組】":"")+e.q.replace(/<[^>]+>/g," ").replace(/\s+/g," ");
+  return `<button class="eitem" data-id="${e.id}"><span><span class="s">${SHORT[e.u]}・${esc(e.src)}</span><span class="t">${esc(txt)}</span></span>${pill}</button>`;
+}
+function essayList(){
+  view="essays";
+  const units=[...new Set(ESSAYS.map(e=>e.u))];
+  const list=ESSAYS.filter(e=>essayFilter==="all"||e.u===essayFilter||(essayFilter==="todo"&&st.es[e.id]?.r!=="ok"));
+  app.innerHTML=`<section class="sheet">
+    <div class="row" style="justify-content:space-between"><button class="btn ghost small" id="eback">← 回首頁</button><span class="muted">已自評 ${ESSAYS.filter(e=>st.es[e.id]?.r).length}/${ESSAYS.length}</span></div>
+    <h2>非選擇題練習</h2>
+    <div class="chips" id="efil">
+      <button class="chip" data-f="all" aria-pressed="${essayFilter==="all"}">全部</button>
+      <button class="chip" data-f="todo" aria-pressed="${essayFilter==="todo"}">尚未掌握</button>
+      ${units.map(u=>`<button class="chip" data-f="${u}" aria-pressed="${essayFilter===u}">${SHORT[u]}（${ESSAYS.filter(e=>e.u===u).length}）</button>`).join("")}
+    </div>
+    <p class="muted" style="margin:0">單元十在 100–115 年考古題中沒有相關非選擇題。</p>
+    <div class="elist">${list.map(eItemHTML).join("")||`<p class="muted">這個篩選沒有題目。</p>`}</div>
+  </section>`;
+  $("#eback").onclick=home;
+  document.querySelectorAll("#efil .chip").forEach(b=>b.onclick=()=>{ essayFilter=b.dataset.f; essayList(); });
+  document.querySelectorAll(".eitem[data-id]").forEach(b=>b.onclick=()=>essayView(b.dataset.id));
+  window.scrollTo(0,0);
+}
+function essayView(id){
+  const idx=ESSAYS.findIndex(e=>e.id===id); if(idx<0){ essayList(); return; }
+  view="essay"; essayId=id;
+  const e=ESSAYS[idx], s=st.es[id]||{};
+  app.innerHTML=`<section class="sheet">
+    <div class="row" style="justify-content:space-between">
+      <button class="btn ghost small" id="eprev" ${idx===0?"disabled":""}>← 上一題</button>
+      <button class="btn ghost small" id="elist">題目列表</button>
+      <button class="btn ghost small" id="enext" ${idx===ESSAYS.length-1?"disabled":""}>下一題 →</button>
+    </div>
+    <div class="qhead"><span>非選擇題 ${idx+1} / ${ESSAYS.length}　<span class="tag">${SHORT[e.u]}・${TOPIC[e.u]}</span></span>${favBtnHTML(id)}</div>
+    ${e.ctx?`<div class="ctx"><span class="lab">題組情境</span>${e.ctx}</div>`:""}
+    <div class="stem tbl">${e.q} <span class="src">（${esc(e.src)}）</span></div>
+    <div class="guide"><b>作答指引</b><ol>${e.g.map(x=>`<li>${esc(x)}</li>`).join("")}</ol></div>
+    <label class="label" for="draft-${id}">我的作答（自動保存）</label>
+    <textarea id="draft-${id}" placeholder="先依作答指引列出要點，再寫成完整句子。">${esc(s.d||"")}</textarea>
+    <div class="row"><button class="btn" id="showref">${s.open?"收起參考答案":"看參考答案"}</button><span class="muted" id="saved"></span></div>
+    <div id="refbox" ${s.open?"":"hidden"}>
+      <div class="ref tbl">${e.a}</div>
+      <p class="tip">參考答案為依教材整理的作答要點，非官方公布答案。</p>
+      <div class="label">對照後，你的掌握程度？</div>
+      <div class="rate">${Object.entries(RATE).map(([k,v])=>`<button class="chip" data-r="${k}" aria-pressed="${s.r===k}">${v}</button>`).join("")}</div>
+    </div>
+  </section>`;
+  const ta=$("#draft-"+id); let t=null;
+  ta.oninput=()=>{ clearTimeout(t); t=setTimeout(()=>{ const x=st.es[id]||{}; x.d=ta.value; x.t=Date.now(); st.es[id]=x; save(); $("#saved").textContent="草稿已保存"; },600); };
+  $("#showref").onclick=()=>{ const x=st.es[id]||{}; x.open=!x.open; x.d=ta.value; x.t=Date.now(); st.es[id]=x; save(); essayView(id); };
+  document.querySelectorAll(".rate .chip").forEach(b=>b.onclick=()=>{ const x=st.es[id]||{}; const first=!x.r; x.r=b.dataset.r; x.d=ta.value; x.t=Date.now(); st.es[id]=x;
+    if(first){ const d=today(); const y=st.daily[d]||{n:0,w:0,r:0,e:0}; y.e=(y.e||0)+1; st.daily[d]=y; } save(); essayView(id); });
+  $("#eprev").onclick=()=>essayView(ESSAYS[idx-1].id);
+  $("#enext").onclick=()=>essayView(ESSAYS[idx+1].id);
+  $("#elist").onclick=essayList; wireFav(app);
+  window.scrollTo(0,0);
+}
+
+/* ---------- boot (keeps the current screen when a new version arrives) ---------- */
+function boot(data){
+  data = data || {};
+  try{ if(data.st) st = merge(st, norm(data.st)); if(data.round) round = data.round; if(data.essayId) essayId = data.essayId; if(data.homeTab) homeTab=data.homeTab; }catch(e){}
+  const v = data.view;
+  if(v==="q" && round) ask(); else if((v==="result") && round) result(); else if(v==="essay" && essayId) essayView(essayId); else if(v==="essays") essayList(); else if(v==="fav" && essayId) favView(essayId); else home();
+  connect();
+}
+try{ window.claude?.hot?.snapshot?.(()=>({view, round, essayId, homeTab, st})); }catch(e){}
+window.claude?.hot?.ready ? window.claude.hot.ready(boot) : boot(window.claude?.hot?.data ?? {});
+</script>
+
+</body></html>
